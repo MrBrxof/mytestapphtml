@@ -160,18 +160,18 @@
         
         .panel-header { padding: 16px 20px; border-bottom: 1px solid #3f3f46; display: flex; justify-content: space-between; align-items: center; position: relative; flex-shrink: 0;}
         .panel-header h2 { font-size: 18px; color: #fff; margin: 0; }
-        .btn-close { background: none; border: none; color: #a1a1aa; padding: 4px; }
-        .btn-dots { background: none; border: none; color: #a1a1aa; padding: 4px; }
+        .btn-close, .btn-dots { background: none; border: none; color: #a1a1aa; padding: 4px; }
         
-        /* Дропдаун профиля */
+        /* Дропдаун профиля (с иконками) */
         .dropdown-menu {
             position: absolute; top: 56px; right: 20px; background: #27272a; border: 1px solid #3f3f46;
             border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            display: none; flex-direction: column; z-index: 10; overflow: hidden; min-width: 220px;
+            display: none; flex-direction: column; z-index: 10; overflow: hidden; min-width: 240px;
         }
         .dropdown-menu.active { display: flex; }
-        .dropdown-item { padding: 12px 16px; color: #fff; text-align: left; background: none; border: none; font-size: 14px; width: 100%; transition: 0.2s; white-space: nowrap;}
+        .dropdown-item { padding: 12px 16px; color: #fff; text-align: left; background: none; border: none; font-size: 14px; width: 100%; transition: 0.2s; display: flex; align-items: center; gap: 10px;}
         .dropdown-item:hover { background: #3f3f46; color: #4ade80;}
+        .dropdown-item svg { color: inherit; }
 
         .panel-content { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         
@@ -204,7 +204,7 @@
         .btn-terminate { background: rgba(239,68,68,0.1); color: #ef4444; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; transition: 0.2s; flex-shrink: 0;}
         .btn-terminate:hover { background: #ef4444; color: #fff; }
 
-        /* Модалка звонка (Маленькая) */
+        /* Модалка звонка */
         .alert-modal { background: #27272a; border: 1px solid #3f3f46; padding: 24px; border-radius: 20px; text-align: center; width: 90%; max-width: 320px; transform: scale(0.9); transition: 0.3s; }
         .overlay.visible .alert-modal { transform: scale(1); }
         .alert-modal h2 { margin: 0 0 8px 0; font-size: 18px; color: #fff; }
@@ -301,7 +301,7 @@
 
                 <div class="search-box">
                     <input type="text" id="friend-input" placeholder="Поиск" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')" onkeypress="if(event.key === 'Enter') addFriend()">
-                    <button class="btn-search" id="add-friend-btn" onclick="addFriend()" title="Найти">
+                    <button class="btn-search" id="add-friend-btn" onclick="addFriend()" title="Найти пользователя">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </button>
                 </div>
@@ -370,8 +370,14 @@
                     </button>
                     
                     <div class="dropdown-menu" id="profile-dropdown">
-                        <button class="dropdown-item" onclick="openEditProfile()">Изменить</button>
-                        <button class="dropdown-item" onclick="openDeviceAuthPanel(true)">Войти на другом устройстве</button>
+                        <button class="dropdown-item" onclick="openEditProfile()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            Изменить
+                        </button>
+                        <button class="dropdown-item" onclick="openDeviceAuthPanel(true)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                            Войти на другом устройстве
+                        </button>
                     </div>
                 </div>
             </div>
@@ -411,6 +417,11 @@
                         <span style="color:#71717a;">></span>
                     </li>
                 </ul>
+                
+                <button class="btn-logout" onclick="doLogout()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    Выйти
+                </button>
             </div>
         </div>
     </div>
@@ -464,7 +475,7 @@
                 
                 <!-- БЛОК ГЕНЕРАЦИИ (Для того кто уже вошел) -->
                 <div id="auth-generator-block" style="width: 100%;">
-                    <p style="color:#a1a1aa; font-size:14px; margin-bottom:16px;">Отсканируйте код другим устройством или введите цифры:</p>
+                    <p style="color:#a1a1aa; font-size:14px; margin-bottom:16px;">Отсканируйте код другим устройством или введите цифры. <br><br><b>Внимание:</b> Ваша история чатов будет перенесена на новое устройство!</p>
                     <div class="qr-box"><img id="device-qr-img" src="" width="160" height="160" alt="QR"></div>
                     <div class="code-display" id="device-code-txt">00000</div>
                 </div>
@@ -514,13 +525,13 @@
         let selectedAvatar = null;
         let myDeviceId = localStorage.getItem('fluger_device_id');
         
-        // Генерация ID устройства, если нет
+        // Генерация ID устройства
         if (!myDeviceId) {
             myDeviceId = Math.random().toString(36).substr(2, 9);
             localStorage.setItem('fluger_device_id', myDeviceId);
         }
 
-        // Регистрация/обновление текущего устройства в списке
+        // Обновление текущего устройства
         function updateCurrentDevice() {
             if (!currentUser) return;
             if (!currentUser.devices) currentUser.devices = [];
@@ -528,13 +539,17 @@
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const devIndex = currentUser.devices.findIndex(d => d.id === myDeviceId);
             
+            // Симуляция IP. В реальном приложении это делается через бэкенд
+            const fakeIp = localStorage.getItem('fluger_fake_ip') || ('192.168.1.' + Math.floor(Math.random() * 255));
+            localStorage.setItem('fluger_fake_ip', fakeIp);
+
             const devInfo = {
                 id: myDeviceId,
                 type: isMobile ? 'phone' : 'pc',
-                name: isMobile ? 'Смартфон' : 'Компьютер (Web)',
-                ip: '192.168.1.' + Math.floor(Math.random() * 255), // Симуляция
-                country: 'Украина', 
-                lastActive: new Date().toLocaleString()
+                name: isMobile ? 'Смартфон' : 'Компьютер',
+                ip: fakeIp,
+                country: 'Скрыто', 
+                lastActive: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString()
             };
 
             if (devIndex >= 0) {
@@ -542,7 +557,6 @@
             } else {
                 currentUser.devices.push(devInfo);
             }
-            
             saveUserToStorage();
         }
 
@@ -717,14 +731,14 @@
                 
                 const terminateBtn = !isCurrent 
                     ? `<button class="btn-terminate" onclick="terminateDevice('${device.id}')">Завершить сеанс</button>`
-                    : `<span style="color:#4ade80; font-size:12px; font-weight:600;">Текущее</span>`;
+                    : `<span style="color:#4ade80; font-size:12px; font-weight:600;">Текущее устройство</span>`;
 
                 listEl.innerHTML += `
                     <div class="device-item">
                         <div class="device-icon">${iconSvg}</div>
                         <div class="device-info">
                             <div class="device-name">${device.name}</div>
-                            <div class="device-meta">${device.country} • ${device.ip}<br>Активен: ${device.lastActive}</div>
+                            <div class="device-meta">${device.country} • IP: ${device.ip}<br>Последняя активность: ${device.lastActive}</div>
                         </div>
                         ${terminateBtn}
                     </div>
@@ -733,7 +747,7 @@
         }
 
         function terminateDevice(id) {
-            if(confirm("Точно завершить сеанс на этом устройстве?")) {
+            if(confirm("Точно завершить сеанс на этом устройстве? Оно больше не сможет получать сообщения до нового входа.")) {
                 currentUser.devices = currentUser.devices.filter(d => d.id !== id);
                 saveUserToStorage();
                 renderDevicesList();
@@ -741,7 +755,7 @@
         }
 
 
-        // === АВТОРИЗАЦИЯ ДРУГОГО УСТРОЙСТВА ===
+        // === АВТОРИЗАЦИЯ ДРУГОГО УСТРОЙСТВА СО СИНХРОНИЗАЦИЕЙ БАЗЫ ДАННЫХ ===
         let authPeer = null;
         let isAuthLoggedIn = false;
         let html5QrCode = null;
@@ -776,8 +790,14 @@
                 authPeer.on('connection', conn => {
                     conn.on('data', data => {
                         if (data.type === 'AUTH_REQ') {
-                            conn.send({ type: 'AUTH_CREDS', creds: currentUser });
-                            statusTxt.innerText = "Данные успешно отправлены!";
+                            // ПЕРЕДАЕМ НЕ ТОЛЬКО АККАУНТ, НО И ИСТОРИЮ ЧАТОВ/КОНТАКТОВ!
+                            conn.send({ 
+                                type: 'AUTH_CREDS', 
+                                creds: currentUser,
+                                friendsData: JSON.stringify(friends),
+                                chatsData: JSON.stringify(chatHistory)
+                            });
+                            statusTxt.innerText = "Устройство привязано. Синхронизация успешна!";
                             statusTxt.style.color = "#4ade80";
                             setTimeout(closeDeviceAuthPanel, 2000);
                         }
@@ -806,14 +826,25 @@
             
             conn.on('open', () => {
                 conn.send({ type: 'AUTH_REQ' });
-                statusTxt.innerText = "Запрос отправлен, ожидание...";
+                statusTxt.innerText = "Запрос отправлен, загрузка истории...";
             });
             conn.on('data', data => {
                 if (data.type === 'AUTH_CREDS') {
                     currentUser = data.creds;
-                    saveUserToStorage(); // Сохранит и добавит текущее устройство
+                    
+                    // ПРИНИМАЕМ ИСТОРИЮ ЧАТОВ И КОНТАКТОВ
+                    if (data.friendsData) {
+                        friends = JSON.parse(data.friendsData);
+                        localStorage.setItem('fluger_friends', data.friendsData);
+                    }
+                    if (data.chatsData) {
+                        chatHistory = JSON.parse(data.chatsData);
+                        localStorage.setItem('fluger_chats', data.chatsData);
+                    }
+
+                    saveUserToStorage(); 
                     updateCurrentDevice();
-                    statusTxt.innerText = "Успешный вход!";
+                    statusTxt.innerText = "Успешный вход и синхронизация!";
                     statusTxt.style.color = "#4ade80";
                     setTimeout(() => { closeDeviceAuthPanel(); checkAuth(); }, 1500);
                 }
@@ -881,7 +912,7 @@
             } else if (state === 'connected') { 
                 txt.innerHTML = 'Fluger'; 
             } else if (state === 'error') { 
-                txt.innerHTML = 'Ошибка сети'; 
+                txt.innerHTML = 'Сессия передана или Ошибка сети'; 
                 txt.classList.add('error');
             }
         }
@@ -898,7 +929,15 @@
                     .then(stream => localStream = stream)
                     .catch(err => console.error("Микрофон недоступен", err));
             });
-            peer.on('disconnected', () => { setConnStatus('error'); setTimeout(() => peer.reconnect(), 3000); });
+            
+            // Если мы заходим с нового устройства, старое выдаст disconnected. 
+            // Чтобы они не дрались бесконечно за соединение, делаем задержку реконнекта.
+            peer.on('disconnected', () => { 
+                setConnStatus('error'); 
+                // Попытка вернуть коннект если мы что-то нажмем (тихая делёжка онлайна)
+                setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 5000); 
+            });
+            
             peer.on('error', err => { setConnStatus('error'); console.error(err); });
 
             peer.on('connection', conn => {
@@ -968,6 +1007,9 @@
         }
 
         function sendData(targetUser, dataObj) {
+            // Если сеть была перехвачена другим устройством, возвращаем её перед отправкой
+            if (peer.disconnected && !peer.destroyed) peer.reconnect();
+            
             const conn = peer.connect(targetUser, { reliable: true });
             conn.on('open', () => { conn.send(dataObj); setTimeout(() => conn.close(), 500); });
             conn.on('error', () => showStatus("Абонент не в сети", "#ef4444"));
@@ -998,6 +1040,9 @@
             document.getElementById('main-area').classList.remove('visible-mobile');
             activeChatId = null;
             renderFriends();
+            
+            // Восстанавливаем пустой фон на ПК если мы закрыли чат
+            document.getElementById('empty-state').style.display = 'flex';
         }
 
         function openChat(username) {
@@ -1014,6 +1059,7 @@
             // На мобильных скрываем сайдбар, показываем чат
             document.getElementById('sidebar').classList.add('hidden-mobile');
             document.getElementById('main-area').classList.add('visible-mobile');
+            document.getElementById('empty-state').style.display = 'none';
             
             renderFriends();
             renderMessages();
@@ -1126,6 +1172,9 @@
 
         document.getElementById('btn-call').onclick = () => {
             if (!activeChatId || currentCall || !localStream) return;
+            
+            if (peer.disconnected && !peer.destroyed) peer.reconnect();
+            
             startOutgoingCallTone();
             setCallUI(true, true);
             const call = peer.call(activeChatId, localStream);
