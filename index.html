@@ -17,7 +17,7 @@
             overflow: hidden;
         }
 
-        /* ЛЕВАЯ ПАНЕЛЬ (Сайдбар) */
+        /* ЛЕВАЯ ПАНЕЛЬ */
         .sidebar {
             width: 320px;
             background: #16213e;
@@ -48,8 +48,13 @@
 
         .add-friend {
             display: flex;
+            flex-direction: column;
             gap: 10px;
             margin-bottom: 20px;
+        }
+        .add-friend-row {
+            display: flex;
+            gap: 10px;
         }
         .add-friend input {
             flex: 1;
@@ -74,8 +79,11 @@
             cursor: pointer;
             font-weight: bold;
             transition: 0.3s;
+            min-width: 90px;
         }
         .btn-small:hover { background: #d83a54; }
+        
+        #add-status { font-size: 12px; color: #aaa; text-align: center; min-height: 15px; }
 
         .friend-list {
             flex: 1;
@@ -99,7 +107,7 @@
         .friend-item span { font-weight: bold; letter-spacing: 1px; }
         .friend-item svg { fill: #43e97b; width: 24px; height: 24px; }
 
-        /* ПРАВАЯ ПАНЕЛЬ (Активный звонок) */
+        /* ПРАВАЯ ПАНЕЛЬ */
         .main-area {
             flex: 1;
             display: flex;
@@ -132,7 +140,7 @@
         .avatar-container svg { width: 80px; height: 80px; fill: #aaa; transition: 0.3s; }
         .avatar-container.active svg { fill: #43e97b; }
 
-        #call-status { font-size: 18px; color: #aaa; margin-bottom: 30px; font-weight: bold; }
+        #call-status { font-size: 18px; color: #aaa; margin-bottom: 30px; font-weight: bold; text-align: center;}
         #active-peer { font-size: 24px; color: #fff; letter-spacing: 2px; margin-bottom: 10px; display: none; }
 
         .btn-hangup {
@@ -204,13 +212,14 @@
         </div>
 
         <div class="add-friend">
-            <input type="text" id="friend-input" placeholder="КОД ДРУГА" maxlength="6">
-            <button class="btn-small" id="add-friend-btn">Добавить</button>
+            <div class="add-friend-row">
+                <input type="text" id="friend-input" placeholder="КОД ДРУГА" maxlength="6">
+                <button class="btn-small" id="add-friend-btn">Добавить</button>
+            </div>
+            <div id="add-status"></div>
         </div>
 
-        <ul class="friend-list" id="friend-list">
-            <!-- Список друзей появится здесь -->
-        </ul>
+        <ul class="friend-list" id="friend-list"></ul>
     </div>
 
     <!-- ПРАВАЯ ПАНЕЛЬ -->
@@ -223,7 +232,7 @@
             </svg>
         </div>
 
-        <div id="call-status">Микрофон загружается...</div>
+        <div id="call-status">Подключение к сети...</div>
 
         <button id="hangup-btn" class="btn-hangup">
             <svg viewBox="0 0 24 24"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.52-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
@@ -235,7 +244,7 @@
     <div class="overlay" id="modal-overlay">
         <div class="modal">
             <h2 id="modal-title">Входящий звонок</h2>
-            <p id="modal-desc">Абонент 123456 звонит вам</p>
+            <p id="modal-desc">...</p>
             <div class="modal-btns">
                 <button class="btn-accept" id="modal-accept">Принять</button>
                 <button class="btn-reject" id="modal-reject">Отклонить</button>
@@ -246,7 +255,6 @@
     <audio id="remote-audio" autoplay></audio>
 
     <script>
-        // --- 1. ГЕНЕРАЦИЯ ID И ИНИЦИАЛИЗАЦИЯ ---
         function generateUniqueId() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let id = '';
@@ -256,7 +264,6 @@
             return id;
         }
 
-        // Если код уже был создан ранее, берем его из памяти (чтобы не менялся при F5)
         let myCode = localStorage.getItem('my_peer_code');
         if (!myCode) {
             myCode = generateUniqueId();
@@ -264,6 +271,7 @@
         }
         document.getElementById('my-code').innerText = myCode;
 
+        // Инициализация PeerJS
         const peer = new Peer(myCode, {
             config: {
                 'iceServers': [
@@ -273,7 +281,6 @@
             }
         });
 
-        // --- 2. ПЕРЕМЕННЫЕ СОСТОЯНИЯ И ЭЛЕМЕНТЫ ---
         let localStream = null;
         let currentCall = null;
         let friends = JSON.parse(localStorage.getItem('my_friends') || '[]');
@@ -284,8 +291,9 @@
         const avatar = document.getElementById('avatar');
         const remoteAudio = document.getElementById('remote-audio');
         const friendListEl = document.getElementById('friend-list');
+        const addStatus = document.getElementById('add-status');
+        const addFriendBtn = document.getElementById('add-friend-btn');
         
-        // Модальное окно
         const overlay = document.getElementById('modal-overlay');
         const modalTitle = document.getElementById('modal-title');
         const modalDesc = document.getElementById('modal-desc');
@@ -295,19 +303,20 @@
         let modalAcceptCallback = null;
         let modalRejectCallback = null;
 
-        // Запрашиваем микрофон
-        navigator.mediaDevices.getUserMedia({ video: false, audio: true })
-            .then(stream => {
-                localStream = stream;
-                statusText.innerText = "Микрофон готов. Выберите друга для звонка.";
-            })
-            .catch(err => {
-                console.error(err);
-                statusText.innerText = "Ошибка: Нет доступа к микрофону!";
-                statusText.style.color = "#e94560";
-            });
+        // Когда сервер PeerJS выдал нам подключение
+        peer.on('open', () => {
+            navigator.mediaDevices.getUserMedia({ video: false, audio: true })
+                .then(stream => {
+                    localStream = stream;
+                    statusText.innerText = "Система готова. Выберите друга из списка для звонка.";
+                })
+                .catch(err => {
+                    console.error(err);
+                    statusText.innerText = "Ошибка: Нет доступа к микрофону!";
+                    statusText.style.color = "#e94560";
+                });
+        });
 
-        // --- 3. ФУНКЦИИ ИНТЕРФЕЙСА ---
         function renderFriends() {
             friendListEl.innerHTML = '';
             friends.forEach(friendId => {
@@ -317,7 +326,6 @@
                     <span>${friendId}</span>
                     <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
                 `;
-                // По клику на друга - звоним ему
                 li.onclick = () => initiateCall(friendId);
                 friendListEl.appendChild(li);
             });
@@ -330,6 +338,12 @@
                 localStorage.setItem('my_friends', JSON.stringify(friends));
                 renderFriends();
             }
+        }
+
+        function showStatus(msg, color = "#aaa") {
+            addStatus.innerText = msg;
+            addStatus.style.color = color;
+            setTimeout(() => addStatus.innerText = "", 4000);
         }
 
         function showModal(title, desc, onAccept, onReject) {
@@ -361,44 +375,80 @@
                 avatar.classList.remove('active');
                 remoteAudio.srcObject = null;
                 currentCall = null;
-                statusText.innerText = "Выберите друга для звонка.";
+                statusText.innerText = "Система готова. Выберите друга из списка для звонка.";
                 statusText.style.color = "#aaa";
             }
         }
 
-        // --- 4. ОТПРАВКА ДАННЫХ И ДРУЖБА ---
-        document.getElementById('add-friend-btn').onclick = () => {
+        // --- ИСПРАВЛЕННАЯ ЛОГИКА ОТПРАВКИ ЗАПРОСА ---
+        addFriendBtn.onclick = () => {
             const targetId = document.getElementById('friend-input').value.trim().toUpperCase();
             if (targetId.length !== 6) return alert("Код должен быть 6 символов!");
             if (targetId === myCode) return alert("Нельзя добавить самого себя!");
             if (friends.includes(targetId)) return alert("Этот человек уже в друзьях!");
 
-            // Соединяемся для отправки запроса
-            const conn = peer.connect(targetId);
+            addFriendBtn.disabled = true;
+            addFriendBtn.innerText = "Поиск...";
+            showStatus("Ищем пользователя...", "#aaa");
+
+            // Подключаемся с флагом надежной доставки
+            const conn = peer.connect(targetId, { reliable: true });
+
+            let connectionTimeout = setTimeout(() => {
+                if (!conn.open) {
+                    showStatus("Пользователь не найден или оффлайн", "#e94560");
+                    addFriendBtn.disabled = false;
+                    addFriendBtn.innerText = "Добавить";
+                    conn.close();
+                }
+            }, 6000); // Ждем 6 секунд
+
             conn.on('open', () => {
+                clearTimeout(connectionTimeout);
+                console.log("Соединение для данных открыто, отправляем запрос.");
                 conn.send({ type: 'FRIEND_REQUEST', from: myCode });
-                alert("Запрос отправлен пользователю " + targetId);
+                
+                showStatus("Запрос успешно отправлен!", "#43e97b");
+                addFriendBtn.disabled = false;
+                addFriendBtn.innerText = "Добавить";
                 document.getElementById('friend-input').value = '';
+                
+                // Закрываем data-канал после отправки, чтобы не висел в фоне
+                setTimeout(() => conn.close(), 1000); 
             });
-            conn.on('error', () => alert("Не удалось отправить запрос. Возможно, пользователь оффлайн."));
+
+            conn.on('error', (err) => {
+                clearTimeout(connectionTimeout);
+                console.error(err);
+                showStatus("Ошибка отправки запроса", "#e94560");
+                addFriendBtn.disabled = false;
+                addFriendBtn.innerText = "Добавить";
+            });
         };
 
-        // Обработка входящих системных сообщений (данных)
+        // --- ИСПРАВЛЕННАЯ ЛОГИКА ПРИЕМА ЗАПРОСОВ ---
         peer.on('connection', conn => {
+            // Как только другой человек подключается к нам, слушаем его данные
             conn.on('data', data => {
+                console.log("Получены данные от", conn.peer, data);
+                
                 if (data.type === 'FRIEND_REQUEST') {
-                    showModal("Запрос в друзья", `Пользователь ${data.from} хочет добавить вас в друзья.`, 
-                        () => { // Принял
+                    showModal("Запрос в друзья", `Пользователь ${data.from} хочет добавить вас.`, 
+                        () => { 
+                            // Принял
                             addFriendToList(data.from);
-                            // Отправляем ответ
-                            const reply = peer.connect(data.from);
-                            reply.on('open', () => reply.send({ type: 'FRIEND_ACCEPT', from: myCode }));
+                            // Создаем ответное соединение, чтобы сообщить об успехе
+                            const reply = peer.connect(data.from, { reliable: true });
+                            reply.on('open', () => {
+                                reply.send({ type: 'FRIEND_ACCEPT', from: myCode });
+                                setTimeout(() => reply.close(), 1000);
+                            });
                         }, 
-                        () => { /* Отклонил (ничего не делаем) */ }
+                        () => { /* Отклонил */ }
                     );
                 } 
                 else if (data.type === 'FRIEND_ACCEPT') {
-                    alert(`Пользователь ${data.from} принял вашу заявку в друзья!`);
+                    showStatus(`Пользователь ${data.from} принял заявку!`, "#43e97b");
                     addFriendToList(data.from);
                 }
                 else if (data.type === 'CALL_REJECTED') {
@@ -409,7 +459,7 @@
             });
         });
 
-        // --- 5. ЛОГИКА ЗВОНКОВ ---
+        // --- ЛОГИКА ЗВОНКОВ ---
         function setupCallEvents(call) {
             call.on('stream', remoteStream => {
                 remoteAudio.srcObject = remoteStream;
@@ -424,34 +474,30 @@
             });
 
             call.on('error', err => {
-                console.error(err);
+                console.error("Call error:", err);
                 setCallState(false);
             });
         }
 
-        // ИСХОДЯЩИЙ ЗВОНОК
         function initiateCall(targetId) {
             if (!localStream) return alert("Микрофон не подключен!");
             if (currentCall) return alert("Вы уже находитесь в звонке!");
 
             statusText.innerText = `Звоним ${targetId}... Гудки...`;
             statusText.style.color = "#fff";
-            setCallState(true, targetId); // Предварительно включаем интерфейс звонка
+            setCallState(true, targetId); 
             
             const call = peer.call(targetId, localStream);
             currentCall = call;
             setupCallEvents(call);
         }
 
-        // ВХОДЯЩИЙ ЗВОНОК
         peer.on('call', call => {
             if (currentCall) {
-                // Если мы уже разговариваем, отклоняем вторую линию (занято)
                 call.close();
                 return;
             }
 
-            // Показываем окно принятия звонка
             showModal("Входящий звонок", `Звонит абонент: ${call.peer}`, 
                 () => { // Принять
                     currentCall = call;
@@ -459,15 +505,16 @@
                     setupCallEvents(call);
                 },
                 () => { // Отклонить
-                    // Отправляем системное сообщение об отклонении
-                    const conn = peer.connect(call.peer);
-                    conn.on('open', () => conn.send({ type: 'CALL_REJECTED', from: myCode }));
+                    const conn = peer.connect(call.peer, { reliable: true });
+                    conn.on('open', () => {
+                        conn.send({ type: 'CALL_REJECTED', from: myCode });
+                        setTimeout(() => conn.close(), 500);
+                    });
                     call.close();
                 }
             );
         });
 
-        // КНОПКА СБРОСА
         hangupBtn.onclick = () => {
             if (currentCall) {
                 currentCall.close();
@@ -475,15 +522,14 @@
             setCallState(false);
         };
 
-        // ОШИБКИ СЕРВЕРА PEERJS
         peer.on('error', err => {
-            console.error(err);
+            console.error("PeerJS Error:", err);
             if (err.type === 'peer-unavailable') {
                 statusText.innerText = "Пользователь не в сети.";
                 statusText.style.color = "#e94560";
             }
             setCallState(false);
-            hideModal(); // Прячем модалку, если звонок сорвался из-за ошибки сети
+            hideModal();
         });
 
     </script>
