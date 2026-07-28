@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>7leaf</title>
+    <title>Fluger</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- Библиотека для сканирования QR-кодов -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -19,6 +21,17 @@
             overflow: hidden;
         }
 
+        /* --- ОБЩИЕ ЭЛЕМЕНТЫ УПРАВЛЕНИЯ --- */
+        input {
+            background: #27272a; border: 1px solid #3f3f46; padding: 14px;
+            border-radius: 10px; color: #fff; font-size: 16px; outline: none; transition: 0.2s;
+        }
+        input:focus { border-color: #4ade80; }
+        .btn-primary { background: #4ade80; color: #18181b; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .btn-primary:hover { background: #22c55e; }
+        .btn-secondary { background: transparent; color: #a1a1aa; border: 1px solid #3f3f46; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-secondary:hover { background: #27272a; color: #fff; }
+
         /* --- ЭКРАН АВТОРИЗАЦИИ --- */
         #auth-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -31,22 +44,11 @@
             border-radius: 20px; width: 100%; max-width: 400px; text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .auth-logo { font-size: 32px; font-weight: 700; color: #4ade80; margin-bottom: 30px; letter-spacing: 1px; }
+        .auth-logo { font-size: 36px; font-weight: 700; color: #4ade80; margin-bottom: 30px; letter-spacing: 1px; }
         .auth-buttons, .auth-step { display: none; flex-direction: column; gap: 16px; }
         .auth-step.active, .auth-buttons.active { display: flex; }
-        
-        .auth-card input {
-            background: #27272a; border: 1px solid #3f3f46; padding: 14px;
-            border-radius: 10px; color: #fff; font-size: 16px; outline: none; transition: 0.2s;
-        }
-        .auth-card input:focus { border-color: #4ade80; }
         .auth-card h3 { margin-bottom: 8px; font-size: 18px; color: #fff; }
         .auth-card p { margin-bottom: 20px; font-size: 14px; color: #a1a1aa; }
-        
-        .btn-primary { background: #4ade80; color: #18181b; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        .btn-primary:hover { background: #22c55e; }
-        .btn-secondary { background: transparent; color: #a1a1aa; border: 1px solid #3f3f46; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-secondary:hover { background: #27272a; color: #fff; }
         
         .avatar-options { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
         .avatar-preset { width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; object-fit: cover; }
@@ -55,6 +57,9 @@
         .upload-btn { background: #3f3f46; padding: 10px; border-radius: 8px; font-size: 13px; cursor: pointer; color: #fff; margin-bottom: 10px;}
         .skip-btn { font-size: 13px; color: #71717a; text-decoration: underline; cursor: pointer; margin-top: 10px; }
 
+        .auth-link { color: #4ade80; font-size: 14px; cursor: pointer; margin-top: 15px; text-decoration: none; display: inline-block; }
+        .auth-link:hover { text-decoration: underline; }
+
         /* --- ГЛАВНЫЙ ИНТЕРФЕЙС --- */
         #app-screen { display: none; width: 100%; height: 100%; }
         
@@ -62,35 +67,16 @@
         .sidebar { width: 340px; background: #202024; border-right: 1px solid #3f3f46; display: flex; flex-direction: column; z-index: 10; transition: 0.3s; }
         .sidebar-inner { padding: 20px; display: flex; flex-direction: column; height: 100%; }
 
-        /* Шапка сайдбара (Статус + Моя аватарка) */
         .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-        
-        .main-status {
-            font-size: 24px;
-            font-weight: 700;
-            color: #4ade80;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-        }
+        .main-status { font-size: 24px; font-weight: 700; color: #4ade80; letter-spacing: 0.5px; display: flex; align-items: center; }
         .main-status.error { color: #ef4444; font-size: 20px; }
         .main-status.connecting { color: #a1a1aa; font-size: 20px; }
-        
-        /* Анимация точек */
-        .animated-dots::after {
-            content: '';
-            animation: dots 1.5s steps(4, end) infinite;
-        }
-        @keyframes dots {
-            0% { content: ''; }
-            25% { content: '.'; }
-            50% { content: '..'; }
-            75% { content: '...'; }
-        }
+        .animated-dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
+        @keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
 
-        .avatar-circle { width: 44px; height: 44px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #fff; object-fit: cover; }
+        .avatar-circle { width: 44px; height: 44px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #fff; object-fit: cover; cursor: pointer; transition: 0.2s; }
+        .avatar-circle:hover { box-shadow: 0 0 0 2px #4ade80; }
 
-        /* Поиск */
         .search-box { display: flex; background: #27272a; border: 1px solid #3f3f46; border-radius: 10px; overflow: hidden; margin-bottom: 8px; transition: 0.3s; align-items: center; padding-right: 4px; }
         .search-box:focus-within { border-color: #4ade80; }
         .search-box input { flex: 1; background: transparent; border: none; padding: 12px 14px; color: #fff; font-size: 14px; outline: none; }
@@ -98,7 +84,6 @@
         .btn-search:hover { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
         #add-status { font-size: 12px; margin-bottom: 20px; min-height: 15px; color: #a1a1aa; text-align: center; }
 
-        /* Список друзей */
         .friend-list { flex: 1; overflow-y: auto; list-style: none; }
         .friend-list::-webkit-scrollbar { width: 4px; }
         .friend-list::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
@@ -109,28 +94,12 @@
         .friend-item-info { display: flex; flex-direction: column; flex: 1; }
         .friend-item-name { font-weight: 600; font-size: 15px; }
         
-        /* Бейдж новых сообщений */
-        .unread-badge {
-            background: #4ade80;
-            color: #18181b;
-            font-size: 11px;
-            font-weight: 700;
-            height: 20px;
-            min-width: 20px;
-            padding: 0 6px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .unread-badge { background: #4ade80; color: #18181b; font-size: 11px; font-weight: 700; height: 20px; min-width: 20px; padding: 0 6px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 
         /* ПРАВАЯ ПАНЕЛЬ */
         .main-area { flex: 1; display: flex; flex-direction: column; background: #18181b; position: relative; overflow: hidden; }
-        
-        /* Пустое состояние (теперь просто черный фон) */
         .empty-state { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: #18181b; display: flex;}
 
-        /* Шапка чата */
         .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: #202024; border-bottom: 1px solid #3f3f46; z-index: 10; }
         .chat-header-info { display: flex; align-items: center; gap: 12px; }
         .btn-back { display: none; background: transparent; border: none; color: #a1a1aa; cursor: pointer; padding: 8px; margin-left: -8px; }
@@ -139,7 +108,6 @@
         .btn-call { background: transparent; color: #4ade80; border: none; padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
         .btn-call:hover { background: rgba(74, 222, 128, 0.1); }
 
-        /* Зона звонка */
         .active-call-area { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: radial-gradient(circle at center, #27272a 0%, #18181b 100%); border-bottom: 1px solid #3f3f46; }
         .active-call-area.visible { display: flex; }
         .call-avatar { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; background: #3f3f46; color: #fff; margin-bottom: 16px; transition: 0.3s; object-fit: cover; }
@@ -148,43 +116,75 @@
         #call-status { color: #a1a1aa; margin-bottom: 24px; font-weight: 500; }
         
         .call-controls { display: flex; gap: 16px; }
-        .btn-hangup, .btn-mute {
-            color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
-        }
+        .btn-hangup, .btn-mute { color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .btn-hangup { background: #ef4444; }
         .btn-hangup:hover { background: #dc2626; }
         .btn-mute { background: #3f3f46; }
         .btn-mute:hover { background: #52525b; }
         .btn-mute.muted { background: #eab308; color: #18181b; }
 
-        /* Сообщения */
         .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .msg { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word;}
         .msg.in { background: #27272a; align-self: flex-start; border-bottom-left-radius: 4px; }
         .msg.out { background: #4ade80; color: #18181b; align-self: flex-end; border-bottom-right-radius: 4px; }
-        
-        /* Системные сообщения (звонки и тд) */
-        .msg.system {
-            align-self: center;
-            background: rgba(63, 63, 70, 0.5);
-            color: #a1a1aa;
-            font-size: 12px;
-            padding: 6px 16px;
-            border-radius: 16px;
-            text-align: center;
-            max-width: 90%;
-        }
+        .msg.system { align-self: center; background: rgba(63, 63, 70, 0.5); color: #a1a1aa; font-size: 12px; padding: 6px 16px; border-radius: 16px; text-align: center; max-width: 90%; }
 
-        /* Ввод сообщения */
         .chat-input-area { padding: 16px 24px; background: #202024; border-top: 1px solid #3f3f46; display: flex; gap: 12px; }
-        .chat-input-area input { flex: 1; background: #27272a; border: 1px solid #3f3f46; padding: 14px; border-radius: 8px; color: #fff; font-size: 15px; outline: none; transition: 0.2s; }
-        .chat-input-area input:focus { border-color: #4ade80; }
+        .chat-input-area input { flex: 1; }
         .btn-send { background: #4ade80; border: none; border-radius: 8px; width: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #18181b; }
         .btn-send:hover { background: #22c55e; }
 
-        /* Модалка */
-        .overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s; }
-        .overlay.visible { opacity: 1; pointer-events: auto; }
+        /* --- ВСПЛЫВАЮЩИЕ ПАНЕЛИ (Профиль, Устройства) --- */
+        .panel-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
+            z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .panel-overlay.visible { opacity: 1; pointer-events: auto; }
+        
+        .panel {
+            background: #202024; border: 1px solid #3f3f46; padding: 0;
+            border-radius: 20px; width: 100%; max-width: 400px;
+            transform: scale(0.9); transition: 0.3s; overflow: hidden; display: flex; flex-direction: column;
+            max-height: 90vh;
+        }
+        .panel-overlay.visible .panel { transform: scale(1); }
+        
+        .panel-header { padding: 20px; border-bottom: 1px solid #3f3f46; display: flex; justify-content: space-between; align-items: center; position: relative; }
+        .panel-header h2 { font-size: 18px; color: #fff; margin: 0; }
+        .btn-close { background: none; border: none; color: #a1a1aa; cursor: pointer; }
+        .btn-dots { background: none; border: none; color: #a1a1aa; cursor: pointer; padding: 4px; }
+        
+        /* Дропдаун 3 точки */
+        .dropdown-menu {
+            position: absolute; top: 50px; right: 20px; background: #27272a; border: 1px solid #3f3f46;
+            border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            display: none; flex-direction: column; z-index: 10; overflow: hidden;
+        }
+        .dropdown-menu.active { display: flex; }
+        .dropdown-item { padding: 12px 16px; color: #fff; cursor: pointer; text-align: left; background: none; border: none; font-size: 14px; width: 100%; transition: 0.2s;}
+        .dropdown-item:hover { background: #3f3f46; }
+
+        .panel-content { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        
+        .profile-avatar-large { width: 100px; height: 100px; border-radius: 50%; background: #3f3f46; font-size: 40px; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; object-fit: cover;}
+        .profile-name-large { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+        .profile-user-large { font-size: 14px; color: #a1a1aa; margin-bottom: 24px; }
+
+        /* Список настроек */
+        .settings-list { width: 100%; list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;}
+        .settings-item { background: #27272a; padding: 16px; border-radius: 12px; color: #e4e4e7; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between;}
+        .settings-item:hover { background: #3f3f46; }
+        .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s;}
+        .btn-logout:hover { background: #ef4444; color: #fff; }
+
+        /* Авторизация устройства */
+        .qr-box { background: #fff; padding: 10px; border-radius: 10px; margin-bottom: 16px; }
+        .code-display { font-size: 32px; font-weight: 700; letter-spacing: 5px; color: #4ade80; margin-bottom: 20px; }
+        .scanner-btn { position: absolute; top: 16px; right: 16px; background: rgba(74,222,128,0.1); color: #4ade80; border: none; padding: 8px; border-radius: 8px; cursor: pointer; display: none; } /* Показываем только на мобилках */
+        #qr-reader { width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 16px; display: none; }
+
+        /* Модалка звонка */
         .modal { background: #27272a; border: 1px solid #3f3f46; padding: 32px; border-radius: 20px; text-align: center; width: 340px; transform: scale(0.9); transition: 0.3s; }
         .overlay.visible .modal { transform: scale(1); }
         .modal h2 { margin: 0 0 8px 0; font-size: 20px; }
@@ -194,7 +194,6 @@
         .btn-accept { background: #4ade80; color: #18181b; }
         .btn-reject { background: #ef4444; color: white; }
 
-        /* АДАПТИВНОСТЬ */
         @media (max-width: 768px) {
             .sidebar { width: 100%; position: absolute; height: 100%; top: 0; left: 0; background: #18181b; }
             .sidebar.hidden-mobile { transform: translateX(-100%); }
@@ -202,19 +201,25 @@
             .main-area.visible-mobile { transform: translateX(0); }
             .btn-back { display: block; }
             .empty-state { display: none; }
+            
+            .panel { border-radius: 20px 20px 0 0; position: absolute; bottom: 0; max-width: 100%; transform: translateY(100%); }
+            .panel-overlay.visible .panel { transform: translateY(0); }
+            
+            .scanner-btn { display: flex; align-items: center; justify-content: center; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ЭКРАН АВТОРИЗАЦИИ И РЕГИСТРАЦИИ -->
+    <!-- ЭКРАН АВТОРИЗАЦИИ / РЕГИСТРАЦИИ -->
     <div id="auth-screen">
         <div class="auth-card">
-            <div class="auth-logo">7leaf</div>
+            <div class="auth-logo">Fluger</div>
             
             <div id="auth-init" class="auth-buttons active">
                 <button class="btn-primary" onclick="showLogin()">Войти</button>
                 <button class="btn-secondary" onclick="showRegStep(1)">Зарегистрироваться</button>
+                <a class="auth-link" onclick="openDeviceAuthPanel(false)">Войти с другого устройства</a>
             </div>
 
             <div id="auth-login" class="auth-step">
@@ -225,6 +230,7 @@
                 <button class="btn-secondary" onclick="resetAuth()">Назад</button>
             </div>
 
+            <!-- Шаги регистрации -->
             <div id="reg-step-1" class="auth-step">
                 <h3>Шаг 1: Имя</h3>
                 <p>Как вас будут видеть друзья?</p>
@@ -232,24 +238,18 @@
                 <button class="btn-primary" onclick="showRegStep(2)">Далее</button>
                 <button class="btn-secondary" onclick="resetAuth()">Отмена</button>
             </div>
-
             <div id="reg-step-2" class="auth-step">
                 <h3>Шаг 2: Юз (логин)</h3>
-                <p>Уникальный ник для поиска.</p>
-                <input type="text" id="reg-user" placeholder="Только английские буквы и цифры" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')">
+                <input type="text" id="reg-user" placeholder="Только англ. буквы и цифры" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')">
                 <button class="btn-primary" onclick="showRegStep(3)">Далее</button>
             </div>
-
             <div id="reg-step-3" class="auth-step">
                 <h3>Шаг 3: Пароль</h3>
-                <p>Придумайте надежный пароль.</p>
                 <input type="password" id="reg-pass" placeholder="Пароль">
                 <button class="btn-primary" onclick="showRegStep(4)">Далее</button>
             </div>
-
             <div id="reg-step-4" class="auth-step">
                 <h3>Шаг 4: Аватарка</h3>
-                <p>Выберите фото или пропустите.</p>
                 <div class="avatar-options">
                     <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="avatar-preset" onclick="selectPreset(this)">
                     <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka" class="avatar-preset" onclick="selectPreset(this)">
@@ -260,28 +260,26 @@
                     <input type="file" id="avatar-upload" accept="image/*" onchange="handleFileUpload(event)">
                 </label>
                 <button class="btn-primary" onclick="finishReg()">Завершить</button>
-                <span class="skip-btn" onclick="finishReg(true)">Пропустить (будет 1-я буква)</span>
+                <span class="skip-btn" onclick="finishReg(true)">Пропустить</span>
             </div>
         </div>
     </div>
 
-    <!-- ГЛАВНЫЙ ИНТЕРФЕЙС ПРИЛОЖЕНИЯ -->
+    <!-- ГЛАВНЫЙ ИНТЕРФЕЙС -->
     <div id="app-screen">
         <!-- САЙДБАР -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-inner">
                 
-                <!-- Шапка с аватаром и статусом -->
                 <div class="top-bar">
                     <div class="main-status connecting" id="conn-text">Подключение<span class="animated-dots"></span></div>
-                    <div class="avatar-circle" id="my-avatar-display">?</div>
+                    <div class="avatar-circle" id="my-avatar-display" onclick="openProfilePanel()">?</div>
                 </div>
 
-                <!-- Поиск -->
                 <div class="search-box">
                     <input type="text" id="friend-input" placeholder="Поиск" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')" onkeypress="if(event.key === 'Enter') addFriend()">
                     <button class="btn-search" id="add-friend-btn" onclick="addFriend()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </button>
                 </div>
                 <div id="add-status"></div>
@@ -290,7 +288,7 @@
             </div>
         </div>
 
-        <!-- ОСНОВНАЯ ЗОНА -->
+        <!-- ОСНОВНАЯ ЗОНА (ЧАТ) -->
         <div class="main-area" id="main-area">
             <div class="empty-state" id="empty-state"></div>
 
@@ -313,8 +311,8 @@
                 
                 <div class="call-controls">
                     <button class="btn-mute" id="btn-mute" title="Вкл/Выкл микрофон">
-                        <svg id="icon-mic-on" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                        <svg id="icon-mic-off" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                        <svg id="icon-mic-on" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                        <svg id="icon-mic-off" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                     </button>
                     <button class="btn-hangup" id="btn-hangup" title="Завершить вызов">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15.46L16.28 14c-.38-.11-.79-.01-1.07.28l-2.73 2.73c-3.13-1.63-5.69-4.18-7.31-7.31l2.73-2.73c.29-.29.39-.7.28-1.07L6.73 3.19C6.42 2.27 5.27 2 4.4 2H3.5C2.67 2 2 2.67 2 3.5c0 10.22 8.28 18.5 18.5 18.5.83 0 1.5-.67 1.5-1.5v-.9c0-.87-.27-2.02-1.05-2.61L21 15.46z" transform="rotate(135 12 12)"/></svg>
@@ -333,6 +331,92 @@
         </div>
     </div>
 
+    <!-- ПАНЕЛЬ ПРОФИЛЯ -->
+    <div class="panel-overlay" id="profile-panel-overlay">
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Профиль</h2>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-dots" onclick="toggleDropdown()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                    </button>
+                    <button class="btn-close" onclick="closeProfilePanel()">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    </button>
+                    
+                    <div class="dropdown-menu" id="profile-dropdown">
+                        <button class="dropdown-item" onclick="openEditProfile()">Изменить</button>
+                        <button class="dropdown-item" onclick="openDeviceAuthPanel(true)">Войти на другом устройстве</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel-content">
+                <div class="profile-avatar-large" id="panel-avatar">?</div>
+                <div class="profile-name-large" id="panel-name">Имя</div>
+                <div class="profile-user-large" id="panel-user">@юз</div>
+                
+                <ul class="settings-list">
+                    <li class="settings-item" onclick="alert('В разработке')">Настройки чатов <span>></span></li>
+                    <li class="settings-item" onclick="alert('В разработке')">Конфиденциальность <span>></span></li>
+                    <li class="settings-item" onclick="alert('В разработке')">Звук <span>></span></li>
+                    <li class="settings-item" onclick="alert('В разработке')">Устройства <span>></span></li>
+                </ul>
+                
+                <button class="btn-logout" onclick="doLogout()">Выйти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПАНЕЛЬ РЕДАКТИРОВАНИЯ ПРОФИЛЯ -->
+    <div class="panel-overlay" id="edit-profile-overlay">
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Изменить профиль</h2>
+                <button class="btn-close" onclick="closeEditProfile()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="panel-content" style="gap: 16px;">
+                <label class="upload-btn" style="margin: 0;">
+                    Загрузить новую аватарку
+                    <input type="file" style="display:none;" accept="image/*" onchange="handleEditAvatar(event)">
+                </label>
+                <input type="text" id="edit-name" placeholder="Отображаемое имя" style="width: 100%;">
+                <input type="text" id="edit-user" placeholder="Юз (логин)" style="width: 100%;" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')">
+                <button class="btn-primary" style="width: 100%;" onclick="saveProfileEdit()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПАНЕЛЬ ВХОДА НА ДРУГОМ УСТРОЙСТВЕ -->
+    <div class="panel-overlay" id="device-auth-overlay">
+        <div class="panel" style="position: relative;">
+            <div class="panel-header">
+                <h2>Привязать устройство</h2>
+                <button class="btn-close" onclick="closeDeviceAuthPanel()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+                <button class="scanner-btn" id="btn-scan-qr" onclick="startQRScanner()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+                </button>
+            </div>
+            <div class="panel-content" style="text-align: center;">
+                <div id="qr-reader"></div>
+                <div id="qr-display-area">
+                    <p style="color:#a1a1aa; font-size:14px; margin-bottom:10px;">Отсканируйте код другим устройством:</p>
+                    <div class="qr-box"><img id="device-qr-img" src="" width="150" height="150"></div>
+                    <div class="code-display" id="device-code-txt">00000</div>
+                </div>
+                
+                <p style="color:#a1a1aa; font-size:14px; margin-bottom:10px;">Или введите код с другого устройства:</p>
+                <input type="text" id="device-auth-input" placeholder="Код (5 цифр)" maxlength="5" style="text-align: center; font-size: 20px; letter-spacing: 5px; width: 100%; margin-bottom:10px;">
+                <button class="btn-primary" style="width: 100%;" onclick="connectDeviceAuth()">Подключить</button>
+                <div id="device-auth-status" style="margin-top: 10px; font-size: 14px; color: #a1a1aa;"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- МОДАЛКА ЗВОНКОВ/ЗАПРОСОВ -->
     <div class="overlay" id="modal-overlay">
         <div class="modal">
@@ -345,13 +429,13 @@
         </div>
     </div>
 
-    <!-- АУДИО ЭЛЕМЕНТЫ -->
+    <!-- АУДИО -->
     <audio id="remote-audio" autoplay></audio>
     <audio id="incoming-ringtone" src="souncall.mp3" loop preload="auto"></audio>
 
     <script>
-        // === 1. ЛОГИКА АВТОРИЗАЦИИ ===
-        let currentUser = JSON.parse(localStorage.getItem('7leaf_user'));
+        // === БАЗА И АВТОРИЗАЦИЯ ===
+        let currentUser = JSON.parse(localStorage.getItem('fluger_user'));
         let selectedAvatar = null;
 
         function checkAuth() {
@@ -377,7 +461,6 @@
             if (step === 2 && !document.getElementById('reg-name').value.trim()) return alert("Введите имя!");
             if (step === 3 && !document.getElementById('reg-user').value.trim()) return alert("Введите юз!");
             if (step === 4 && !document.getElementById('reg-pass').value.trim()) return alert("Введите пароль!");
-            
             document.querySelectorAll('.auth-step, .auth-buttons').forEach(el => el.classList.remove('active'));
             document.getElementById('reg-step-' + step).classList.add('active');
         }
@@ -391,10 +474,7 @@
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = (ev) => {
-                selectedAvatar = ev.target.result;
-                alert("Фото загружено!");
-            };
+            reader.onload = (ev) => { selectedAvatar = ev.target.result; alert("Фото загружено!"); };
             reader.readAsDataURL(file);
         }
 
@@ -402,16 +482,13 @@
             const name = document.getElementById('reg-name').value.trim();
             const user = document.getElementById('reg-user').value.trim();
             const pass = document.getElementById('reg-pass').value;
-            
-            let finalAvatar = selectedAvatar;
-            if (skipAvatar || !finalAvatar) finalAvatar = "";
+            let finalAvatar = skipAvatar || !selectedAvatar ? "" : selectedAvatar;
 
             currentUser = { displayName: name, username: user, password: pass, avatar: finalAvatar };
-            localStorage.setItem('7leaf_user', JSON.stringify(currentUser));
-            
-            let allAccounts = JSON.parse(localStorage.getItem('7leaf_accounts') || '{}');
+            localStorage.setItem('fluger_user', JSON.stringify(currentUser));
+            let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
             allAccounts[user] = currentUser;
-            localStorage.setItem('7leaf_accounts', JSON.stringify(allAccounts));
+            localStorage.setItem('fluger_accounts', JSON.stringify(allAccounts));
 
             checkAuth();
         }
@@ -419,15 +496,21 @@
         function doLogin() {
             const user = document.getElementById('login-user').value.trim();
             const pass = document.getElementById('login-pass').value;
-            let allAccounts = JSON.parse(localStorage.getItem('7leaf_accounts') || '{}');
+            let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
             
             if (allAccounts[user] && allAccounts[user].password === pass) {
                 currentUser = allAccounts[user];
-                localStorage.setItem('7leaf_user', JSON.stringify(currentUser));
+                localStorage.setItem('fluger_user', JSON.stringify(currentUser));
                 checkAuth();
             } else {
                 alert("Неверный юз или пароль!");
             }
+        }
+
+        function doLogout() {
+            localStorage.removeItem('fluger_user');
+            if(peer) peer.destroy();
+            location.reload();
         }
 
         function renderAvatarHtml(name, avatarStr) {
@@ -438,28 +521,195 @@
         }
 
 
-        // === 2. ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ (PEERJS) ===
+        // === ПАНЕЛЬ ПРОФИЛЯ ===
+        function openProfilePanel() {
+            document.getElementById('panel-avatar').innerHTML = renderAvatarHtml(currentUser.displayName, currentUser.avatar);
+            document.getElementById('panel-name').innerText = currentUser.displayName;
+            document.getElementById('panel-user').innerText = '@' + currentUser.username;
+            document.getElementById('profile-panel-overlay').classList.add('visible');
+        }
+        function closeProfilePanel() {
+            document.getElementById('profile-panel-overlay').classList.remove('visible');
+            document.getElementById('profile-dropdown').classList.remove('active');
+        }
+        function toggleDropdown() { document.getElementById('profile-dropdown').classList.toggle('active'); }
+        
+        // РЕДАКТИРОВАНИЕ ПРОФИЛЯ
+        let editAvatarTemp = null;
+        function openEditProfile() {
+            closeProfilePanel();
+            editAvatarTemp = currentUser.avatar;
+            document.getElementById('edit-name').value = currentUser.displayName;
+            document.getElementById('edit-user').value = currentUser.username;
+            document.getElementById('edit-profile-overlay').classList.add('visible');
+        }
+        function closeEditProfile() { document.getElementById('edit-profile-overlay').classList.remove('visible'); }
+        function handleEditAvatar(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => { editAvatarTemp = ev.target.result; alert("Новое фото загружено"); };
+            reader.readAsDataURL(file);
+        }
+        function saveProfileEdit() {
+            const newName = document.getElementById('edit-name').value.trim();
+            const newUser = document.getElementById('edit-user').value.trim();
+            if (!newName || !newUser) return alert("Заполните поля!");
+
+            const oldUser = currentUser.username;
+            currentUser.displayName = newName;
+            currentUser.username = newUser;
+            currentUser.avatar = editAvatarTemp;
+
+            localStorage.setItem('fluger_user', JSON.stringify(currentUser));
+            let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
+            delete allAccounts[oldUser];
+            allAccounts[newUser] = currentUser;
+            localStorage.setItem('fluger_accounts', JSON.stringify(allAccounts));
+
+            closeEditProfile();
+            
+            if (oldUser !== newUser) {
+                alert("Юзернейм изменен, идет переподключение...");
+                if (peer) peer.destroy();
+                initApp();
+            } else {
+                document.getElementById('my-avatar-display').innerHTML = renderAvatarHtml(currentUser.displayName, currentUser.avatar);
+            }
+        }
+
+        // === АВТОРИЗАЦИЯ УСТРОЙСТВ (PeerJS Auth Link) ===
+        let authPeer = null;
+        let generatedAuthCode = "";
+        let isAuthLoggedIn = false;
+        let html5QrCode = null;
+
+        function openDeviceAuthPanel(loggedIn) {
+            isAuthLoggedIn = loggedIn;
+            if(!loggedIn) resetAuth();
+            
+            // Генерация кода 5 цифр
+            generatedAuthCode = Math.floor(10000 + Math.random() * 90000).toString();
+            document.getElementById('device-code-txt').innerText = generatedAuthCode;
+            document.getElementById('device-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${generatedAuthCode}&bgcolor=ffffff`;
+            document.getElementById('device-auth-status').innerText = "Ожидание подключения...";
+            
+            if(authPeer) authPeer.destroy();
+            authPeer = new Peer('fluger-auth-' + generatedAuthCode, { config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+            
+            authPeer.on('connection', conn => {
+                conn.on('data', data => {
+                    if (data.type === 'AUTH_SYNC') {
+                        if (isAuthLoggedIn) {
+                            // Я авторизован, отправляю данные
+                            conn.send({ type: 'AUTH_CREDS', creds: currentUser });
+                            document.getElementById('device-auth-status').innerText = "Данные успешно отправлены!";
+                            setTimeout(closeDeviceAuthPanel, 2000);
+                        } else {
+                            // Я НЕ авторизован, принимаю данные
+                            if (data.creds) {
+                                currentUser = data.creds;
+                                localStorage.setItem('fluger_user', JSON.stringify(currentUser));
+                                let allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
+                                allAccs[currentUser.username] = currentUser;
+                                localStorage.setItem('fluger_accounts', JSON.stringify(allAccs));
+                                
+                                document.getElementById('device-auth-status').innerText = "Успешный вход!";
+                                setTimeout(() => { closeDeviceAuthPanel(); checkAuth(); }, 1500);
+                            }
+                        }
+                    } else if (data.type === 'AUTH_CREDS' && !isAuthLoggedIn) {
+                        currentUser = data.creds;
+                        localStorage.setItem('fluger_user', JSON.stringify(currentUser));
+                        let allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
+                        allAccs[currentUser.username] = currentUser;
+                        localStorage.setItem('fluger_accounts', JSON.stringify(allAccs));
+                        
+                        document.getElementById('device-auth-status').innerText = "Успешный вход!";
+                        setTimeout(() => { closeDeviceAuthPanel(); checkAuth(); }, 1500);
+                    }
+                });
+                
+                // Если я залогинен и кто-то подключился, инициируем отправку
+                if (isAuthLoggedIn) {
+                    setTimeout(()=> conn.send({ type: 'AUTH_SYNC', creds: currentUser }), 500);
+                }
+            });
+
+            document.getElementById('device-auth-overlay').classList.add('visible');
+            if(loggedIn) closeProfilePanel();
+        }
+
+        function connectDeviceAuth(codeOverride = null) {
+            const code = codeOverride || document.getElementById('device-auth-input').value.trim();
+            if (code.length !== 5) return alert("Введите 5 цифр!");
+            
+            document.getElementById('device-auth-status').innerText = "Подключение...";
+            const conn = authPeer.connect('fluger-auth-' + code, { reliable: true });
+            
+            conn.on('open', () => {
+                if (isAuthLoggedIn) {
+                    conn.send({ type: 'AUTH_CREDS', creds: currentUser });
+                    document.getElementById('device-auth-status').innerText = "Данные успешно отправлены!";
+                    setTimeout(closeDeviceAuthPanel, 2000);
+                } else {
+                    conn.send({ type: 'AUTH_SYNC' });
+                    document.getElementById('device-auth-status').innerText = "Запрос отправлен, ожидание...";
+                }
+            });
+            conn.on('error', () => { document.getElementById('device-auth-status').innerText = "Ошибка подключения (неверный код)"; });
+        }
+
+        function closeDeviceAuthPanel() {
+            document.getElementById('device-auth-overlay').classList.remove('visible');
+            if(authPeer) authPeer.destroy();
+            if(html5QrCode) { html5QrCode.stop().catch(e=>{}); document.getElementById('qr-reader').style.display = 'none'; document.getElementById('qr-display-area').style.display = 'block'; }
+        }
+
+        // Сканер QR
+        function startQRScanner() {
+            document.getElementById('qr-display-area').style.display = 'none';
+            document.getElementById('qr-reader').style.display = 'block';
+            
+            html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 200, height: 200 } }, 
+                (decodedText) => {
+                    html5QrCode.stop();
+                    document.getElementById('qr-reader').style.display = 'none';
+                    document.getElementById('qr-display-area').style.display = 'block';
+                    document.getElementById('device-auth-input').value = decodedText;
+                    connectDeviceAuth(decodedText);
+                },
+                (err) => {}
+            ).catch(err => {
+                alert("Ошибка доступа к камере");
+                document.getElementById('qr-reader').style.display = 'none';
+                document.getElementById('qr-display-area').style.display = 'block';
+            });
+        }
+
+
+        // === ОСНОВНАЯ ЛОГИКА PEERJS ===
         let peer = null;
         let localStream = null;
         let currentCall = null;
         let isMuted = false;
         
-        let friends = JSON.parse(localStorage.getItem('7leaf_friends') || '{}');
-        let chatHistory = JSON.parse(localStorage.getItem('7leaf_chats') || '{}');
-        let unreadCounts = JSON.parse(localStorage.getItem('7leaf_unread') || '{}');
+        let friends = JSON.parse(localStorage.getItem('fluger_friends') || '{}');
+        let chatHistory = JSON.parse(localStorage.getItem('fluger_chats') || '{}');
+        let unreadCounts = JSON.parse(localStorage.getItem('fluger_unread') || '{}');
         let activeChatId = null;
 
         function setConnStatus(state) {
             const txt = document.getElementById('conn-text');
-            txt.className = 'main-status'; // Reset classes
-            
+            txt.className = 'main-status'; 
             if (state === 'connecting') { 
                 txt.innerHTML = 'Подключение<span class="animated-dots"></span>'; 
                 txt.classList.add('connecting');
             } else if (state === 'connected') { 
-                txt.innerHTML = '7leaf'; 
+                txt.innerHTML = 'Fluger'; 
             } else if (state === 'error') { 
-                txt.innerHTML = 'Ошибка сети'; 
+                txt.innerHTML = 'Не удалось подключиться'; 
                 txt.classList.add('error');
             }
         }
@@ -541,7 +791,7 @@
         function saveFriendProfile(username, profileObj) {
             if (!friends[username]) friends[username] = {};
             friends[username] = profileObj;
-            localStorage.setItem('7leaf_friends', JSON.stringify(friends));
+            localStorage.setItem('fluger_friends', JSON.stringify(friends));
             renderFriends();
         }
 
@@ -551,7 +801,7 @@
             conn.on('error', () => showStatus("Абонент не в сети", "#ef4444"));
         }
 
-        // --- ИНТЕРФЕЙС И СООБЩЕНИЯ ---
+        // --- ИНТЕРФЕЙС И ЧАТ ---
         function renderFriends() {
             const listEl = document.getElementById('friend-list');
             listEl.innerHTML = '';
@@ -560,14 +810,10 @@
                 const unread = unreadCounts[username] || 0;
                 const li = document.createElement('li');
                 li.className = `friend-item ${activeChatId === username ? 'active' : ''}`;
-                
                 let unreadHtml = unread > 0 ? `<div class="unread-badge">${unread}</div>` : '';
-
                 li.innerHTML = `
                     <div class="friend-avatar-small">${renderAvatarHtml(profile.displayName, profile.avatar)}</div>
-                    <div class="friend-item-info">
-                        <div class="friend-item-name">${profile.displayName}</div>
-                    </div>
+                    <div class="friend-item-info"><div class="friend-item-name">${profile.displayName}</div></div>
                     ${unreadHtml}
                 `;
                 li.onclick = () => openChat(username);
@@ -586,9 +832,8 @@
             activeChatId = username;
             const profile = friends[username];
             
-            // Сбрасываем счетчик непрочитанных
             unreadCounts[username] = 0;
-            localStorage.setItem('7leaf_unread', JSON.stringify(unreadCounts));
+            localStorage.setItem('fluger_unread', JSON.stringify(unreadCounts));
 
             document.getElementById('chat-title-name').innerText = profile.displayName;
             document.getElementById('chat-avatar-top').innerHTML = renderAvatarHtml(profile.displayName, profile.avatar);
@@ -623,14 +868,12 @@
         function saveMessage(chatId, from, text) {
             if (!chatHistory[chatId]) chatHistory[chatId] = [];
             chatHistory[chatId].push({ from, text, type: 'text' });
-            localStorage.setItem('7leaf_chats', JSON.stringify(chatHistory));
+            localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
             
-            if (activeChatId === chatId) {
-                renderMessages();
-            } else if (from !== currentUser.username) {
-                // Если чат не открыт, добавляем бейдж
+            if (activeChatId === chatId) { renderMessages(); } 
+            else if (from !== currentUser.username) {
                 unreadCounts[chatId] = (unreadCounts[chatId] || 0) + 1;
-                localStorage.setItem('7leaf_unread', JSON.stringify(unreadCounts));
+                localStorage.setItem('fluger_unread', JSON.stringify(unreadCounts));
                 renderFriends();
             }
         }
@@ -638,7 +881,7 @@
         function saveSystemMessage(chatId, text) {
             if (!chatHistory[chatId]) chatHistory[chatId] = [];
             chatHistory[chatId].push({ text, type: 'system' });
-            localStorage.setItem('7leaf_chats', JSON.stringify(chatHistory));
+            localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
             if (activeChatId === chatId) renderMessages();
         }
 
@@ -654,7 +897,6 @@
         document.getElementById('btn-send').onclick = sendTextMessage;
         document.getElementById('chat-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendTextMessage(); });
 
-        // Добавление друзей (Поиск)
         function showStatus(msg, color="#a1a1aa") {
             const el = document.getElementById('add-status');
             el.innerText = msg; el.style.color = color;
@@ -695,7 +937,6 @@
                 stopOutgoingCallTone();
                 stopIncomingRingtone();
                 
-                // Сброс мьюта при завершении
                 if (isMuted) toggleMute(); 
             }
         }
@@ -707,10 +948,7 @@
                 document.getElementById('remote-audio').srcObject = stream;
                 setCallUI(true, false);
             });
-            call.on('close', () => {
-                setCallUI(false);
-                saveSystemMessage(call.peer, "Звонок завершен");
-            });
+            call.on('close', () => { setCallUI(false); saveSystemMessage(call.peer, "Звонок завершен"); });
             call.on('error', () => setCallUI(false));
         }
 
@@ -724,33 +962,23 @@
             saveSystemMessage(activeChatId, "Исходящий звонок");
         };
 
-        document.getElementById('btn-hangup').onclick = () => {
-            if (currentCall) currentCall.close();
-            setCallUI(false);
-        };
+        document.getElementById('btn-hangup').onclick = () => { if (currentCall) currentCall.close(); setCallUI(false); };
 
-        // Логика Микрофона
         function toggleMute() {
             if (!localStream) return;
             isMuted = !isMuted;
             localStream.getAudioTracks()[0].enabled = !isMuted;
-            
             const btn = document.getElementById('btn-mute');
-            const iconOn = document.getElementById('icon-mic-on');
-            const iconOff = document.getElementById('icon-mic-off');
-            
             if (isMuted) {
                 btn.classList.add('muted');
-                iconOn.style.display = 'none';
-                iconOff.style.display = 'block';
+                document.getElementById('icon-mic-on').style.display = 'none';
+                document.getElementById('icon-mic-off').style.display = 'block';
             } else {
                 btn.classList.remove('muted');
-                iconOn.style.display = 'block';
-                iconOff.style.display = 'none';
+                document.getElementById('icon-mic-on').style.display = 'block';
+                document.getElementById('icon-mic-off').style.display = 'none';
             }
         }
-        document.getElementById('btn-mute').onclick = toggleMute;
-
 
         // --- МОДАЛКА И ЗВУКИ ---
         const overlay = document.getElementById('modal-overlay');
@@ -783,10 +1011,7 @@
         let callToneInterval;
         const incomingAudioElement = document.getElementById('incoming-ringtone');
         
-        function playNotify() {
-            playTone(600, 'sine', 0.1, 0.2);
-            setTimeout(() => playTone(800, 'sine', 0.2, 0.2), 150);
-        }
+        function playNotify() { playTone(600, 'sine', 0.1, 0.2); setTimeout(() => playTone(800, 'sine', 0.2, 0.2), 150); }
         function startIncomingRingtone() { incomingAudioElement.play().catch(e=>console.log(e)); }
         function stopIncomingRingtone() { incomingAudioElement.pause(); incomingAudioElement.currentTime = 0; }
         function startOutgoingCallTone() {
@@ -796,9 +1021,10 @@
         }
         function stopOutgoingCallTone() { clearInterval(callToneInterval); callToneInterval = null; }
 
-        // Запуск
+        // ЗАПУСК
         checkAuth();
 
     </script>
 </body>
 </html>
+
