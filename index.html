@@ -22,7 +22,6 @@
             position: fixed;
         }
 
-        /* --- ОБЩИЕ ЭЛЕМЕНТЫ УПРАВЛЕНИЯ --- */
         input {
             background: #27272a; border: 1px solid #3f3f46; padding: 14px;
             border-radius: 10px; color: #fff; font-size: 16px; outline: none; transition: 0.2s;
@@ -82,22 +81,24 @@
         .avatar-circle { width: 44px; height: 44px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #fff; object-fit: cover; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
         .avatar-circle:hover { box-shadow: 0 0 0 2px #4ade80; }
 
-        .search-box { display: flex; background: #27272a; border: 1px solid #3f3f46; border-radius: 10px; overflow: hidden; margin-bottom: 8px; transition: 0.3s; align-items: center; padding-right: 4px; flex-shrink: 0;}
+        .search-box { display: flex; background: #27272a; border: 1px solid #3f3f46; border-radius: 10px; overflow: hidden; margin-bottom: 16px; transition: 0.3s; align-items: center; padding-right: 4px; flex-shrink: 0;}
         .search-box:focus-within { border-color: #4ade80; }
         .search-box input { flex: 1; background: transparent; border: none; padding: 12px 14px; color: #fff; font-size: 14px; outline: none; }
-        .btn-search { background: transparent; color: #a1a1aa; border: none; padding: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; }
-        .btn-search:hover { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
-        #add-status { font-size: 12px; margin-bottom: 16px; min-height: 15px; color: #a1a1aa; text-align: center; flex-shrink: 0;}
+        .btn-search { background: transparent; color: #a1a1aa; border: none; padding: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; pointer-events: none;}
 
-        .friend-list { flex: 1; overflow-y: auto; list-style: none; margin: 0 -8px; padding: 0 8px; }
-        .friend-list::-webkit-scrollbar { width: 4px; }
-        .friend-list::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        .friend-list, .search-results { flex: 1; overflow-y: auto; list-style: none; margin: 0 -8px; padding: 0 8px; }
+        .friend-list::-webkit-scrollbar, .search-results::-webkit-scrollbar { width: 4px; }
+        .friend-list::-webkit-scrollbar-thumb, .search-results::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        
+        .search-results { display: none; }
+
         .friend-item { position: relative; background: #27272a; border: 1px solid #3f3f46; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
         .friend-item:hover { background: #303036; }
         .friend-item.active { border-color: #4ade80; background: #2e3648; }
         .friend-avatar-small { width: 40px; height: 40px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: #fff; object-fit: cover; flex-shrink: 0; }
         .friend-item-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
-        .friend-item-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .friend-item-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .friend-item-user { font-size: 12px; color: #a1a1aa; }
         
         .unread-badge { background: #4ade80; color: #18181b; font-size: 11px; font-weight: 700; height: 20px; min-width: 20px; padding: 0 6px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
@@ -105,7 +106,6 @@
         .main-area { flex: 1; display: flex; flex-direction: column; background: #18181b; position: relative; overflow: hidden; min-width: 0; min-height: 0; }
         
         .empty-state { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: #18181b; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #71717a;}
-        .empty-state svg { width: 64px; height: 64px; opacity: 0.2; margin-bottom: 16px;}
 
         .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #202024; border-bottom: 1px solid #3f3f46; z-index: 10; flex-shrink: 0;}
         .chat-header-info { display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden; }
@@ -130,13 +130,34 @@
         .btn-mute:hover { background: #52525b; }
         .btn-mute.muted { background: #eab308; color: #18181b; }
 
-        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word;}
-        .msg.in { background: #27272a; align-self: flex-start; border-bottom-left-radius: 4px; }
-        .msg.out { background: #4ade80; color: #18181b; align-self: flex-end; border-bottom-right-radius: 4px; }
-        .msg.system { align-self: center; background: rgba(63, 63, 70, 0.5); color: #a1a1aa; font-size: 12px; padding: 6px 16px; border-radius: 16px; text-align: center; max-width: 90%; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; position: relative;}
+        .msg-wrapper { display: flex; flex-direction: column; max-width: 85%; }
+        .msg-wrapper.in { align-self: flex-start; }
+        .msg-wrapper.out { align-self: flex-end; align-items: flex-end; }
+        
+        .msg { padding: 8px 12px 6px 12px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative; cursor: pointer; user-select: none; display: flex; flex-direction: column; min-width: 80px;}
+        .msg.in { background: #27272a; border-bottom-left-radius: 4px; }
+        .msg.out { background: #4ade80; color: #18181b; border-bottom-right-radius: 4px; }
+        
+        .msg-text { margin-bottom: 2px; }
+        .msg-meta { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 11px; opacity: 0.7; margin-top: 2px; }
+        .msg-ticks { font-size: 12px; letter-spacing: -2px; margin-right: 2px;}
+        .msg.out .msg-ticks.read { color: #065f46; } /* Темно-зеленый для галочек на светлом фоне */
+        
+        .msg-reactions { display: flex; gap: 4px; margin-top: -8px; z-index: 2; flex-wrap: wrap; margin-bottom: 4px;}
+        .msg-reactions.in { align-self: flex-start; margin-left: 10px; }
+        .msg-reactions.out { align-self: flex-end; margin-right: 10px; }
+        .reaction-badge { background: #3f3f46; border: 1px solid #18181b; border-radius: 10px; padding: 2px 6px; font-size: 12px; display: flex; align-items: center;}
 
-        .chat-input-area { padding: 12px 20px; background: #202024; border-top: 1px solid #3f3f46; display: flex; gap: 10px; flex-shrink: 0; align-items: center; }
+        .msg.system { align-self: center; background: rgba(63, 63, 70, 0.5); color: #a1a1aa; font-size: 12px; padding: 6px 16px; border-radius: 16px; text-align: center; max-width: 90%; margin: 8px 0;}
+
+        /* Ввод сообщения */
+        .chat-input-area { padding: 12px 20px; background: #202024; border-top: 1px solid #3f3f46; display: flex; gap: 10px; flex-shrink: 0; align-items: center; position: relative;}
+        .edit-banner { position: absolute; top: -30px; left: 0; width: 100%; background: #27272a; border-top: 1px solid #3f3f46; padding: 4px 20px; font-size: 12px; color: #4ade80; display: none; align-items: center; justify-content: space-between; z-index: -1;}
+        .edit-banner.active { display: flex; }
+        .btn-cancel-edit { background: none; border: none; color: #a1a1aa; cursor: pointer; font-size: 14px; }
+        .btn-cancel-edit:hover { color: #ef4444; }
+
         .chat-input-area input { flex: 1; background: #27272a; border: 1px solid #3f3f46; padding: 12px 14px; border-radius: 8px; color: #fff; font-size: 15px; outline: none; transition: 0.2s; min-width: 0; }
         .chat-input-area input:focus { border-color: #4ade80; }
         .btn-send { background: #4ade80; border: none; border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; transition: 0.2s; color: #18181b; flex-shrink: 0; }
@@ -162,7 +183,7 @@
         .panel-header h2 { font-size: 18px; color: #fff; margin: 0; }
         .btn-close, .btn-dots { background: none; border: none; color: #a1a1aa; padding: 4px; }
         
-        /* Дропдаун профиля (с иконками) */
+        /* Дропдаун профиля */
         .dropdown-menu {
             position: absolute; top: 56px; right: 20px; background: #27272a; border: 1px solid #3f3f46;
             border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
@@ -204,15 +225,26 @@
         .btn-terminate { background: rgba(239,68,68,0.1); color: #ef4444; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; transition: 0.2s; flex-shrink: 0;}
         .btn-terminate:hover { background: #ef4444; color: #fff; }
 
-        /* Модалка звонка */
-        .alert-modal { background: #27272a; border: 1px solid #3f3f46; padding: 24px; border-radius: 20px; text-align: center; width: 90%; max-width: 320px; transform: scale(0.9); transition: 0.3s; }
-        .overlay.visible .alert-modal { transform: scale(1); }
-        .alert-modal h2 { margin: 0 0 8px 0; font-size: 18px; color: #fff; }
-        .alert-modal p { color: #a1a1aa; margin-bottom: 20px; font-size: 14px; }
-        .modal-btns { display: flex; gap: 10px; }
-        .modal-btns button { flex: 1; padding: 10px; font-weight: 600; border: none; border-radius: 8px; font-size: 14px; }
-        .btn-accept { background: #4ade80; color: #18181b; }
-        .btn-reject { background: #ef4444; color: white; }
+        /* МЕНЮ СООБЩЕНИЯ */
+        #msg-menu-panel { padding-top: 10px; padding-bottom: 10px; }
+        .msg-action-btn { background: transparent; border: none; color: #fff; padding: 14px 20px; font-size: 16px; text-align: left; width: 100%; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px;}
+        .msg-action-btn:hover { background: #3f3f46; }
+        .msg-action-btn.danger { color: #ef4444; }
+        
+        .reactions-container { padding: 10px 20px; border-bottom: 1px solid #3f3f46; display: flex; gap: 10px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+        .reactions-container::-webkit-scrollbar { display: none; }
+        .reaction-btn { background: #3f3f46; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: 0.2s;}
+        .reaction-btn:hover { background: #52525b; transform: scale(1.1); }
+        .reaction-btn.expand { background: #27272a; color: #a1a1aa; }
+        
+        .all-reactions-grid { display: none; grid-template-columns: repeat(8, 1fr); gap: 10px; padding: 15px 20px; border-bottom: 1px solid #3f3f46; max-height: 150px; overflow-y: auto;}
+        .all-reactions-grid.active { display: grid; }
+        @media(max-width: 400px) { .all-reactions-grid { grid-template-columns: repeat(6, 1fr); } }
+
+        /* СПИСОК ПЕРЕСЫЛКИ */
+        .forward-list { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+        .forward-item { display: flex; align-items: center; gap: 12px; background: #27272a; padding: 12px; border-radius: 12px; cursor: pointer; }
+        .forward-item:hover { background: #3f3f46; }
 
         /* --- АДАПТИВНОСТЬ ДЛЯ ТЕЛЕФОНОВ --- */
         @media (max-width: 768px) {
@@ -300,14 +332,14 @@
                 </div>
 
                 <div class="search-box">
-                    <input type="text" id="friend-input" placeholder="Поиск" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')" onkeypress="if(event.key === 'Enter') addFriend()">
-                    <button class="btn-search" id="add-friend-btn" onclick="addFriend()" title="Найти пользователя">
+                    <input type="text" id="friend-input" placeholder="Поиск" oninput="handleSearch(event)">
+                    <div class="btn-search">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    </button>
+                    </div>
                 </div>
-                <div id="add-status"></div>
 
                 <ul class="friend-list" id="friend-list"></ul>
+                <ul class="search-results" id="search-results"></ul>
             </div>
         </div>
 
@@ -347,6 +379,10 @@
 
             <div class="chat-messages" id="chat-messages"></div>
 
+            <div class="edit-banner" id="edit-banner">
+                <div>Редактирование сообщения...</div>
+                <button class="btn-cancel-edit" onclick="cancelEdit()">✖</button>
+            </div>
             <div class="chat-input-area">
                 <input type="text" id="chat-input" placeholder="Написать сообщение...">
                 <button class="btn-send" id="btn-send">
@@ -371,11 +407,11 @@
                     
                     <div class="dropdown-menu" id="profile-dropdown">
                         <button class="dropdown-item" onclick="openEditProfile()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             Изменить
                         </button>
                         <button class="dropdown-item" onclick="openDeviceAuthPanel(true)">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
                             Войти на другом устройстве
                         </button>
                     </div>
@@ -457,7 +493,7 @@
                 </button>
             </div>
             <div class="panel-content" style="padding: 0; background: #18181b; overflow-y: auto;" id="devices-list">
-                <!-- Список устройств будет тут -->
+                <!-- Список устройств -->
             </div>
         </div>
     </div>
@@ -472,21 +508,17 @@
                 </button>
             </div>
             <div class="panel-content" style="text-align: center;">
-                
-                <!-- БЛОК ГЕНЕРАЦИИ (Для того кто уже вошел) -->
                 <div id="auth-generator-block" style="width: 100%;">
-                    <p style="color:#a1a1aa; font-size:14px; margin-bottom:16px;">Отсканируйте код другим устройством или введите цифры. <br><br><b>Внимание:</b> Ваша история чатов будет перенесена на новое устройство!</p>
+                    <p style="color:#a1a1aa; font-size:14px; margin-bottom:16px;">Отсканируйте код другим устройством или введите цифры. Ваша история чатов будет синхронизирована!</p>
                     <div class="qr-box"><img id="device-qr-img" src="" width="160" height="160" alt="QR"></div>
                     <div class="code-display" id="device-code-txt">00000</div>
                 </div>
                 
-                <!-- БЛОК СКАНЕРА/ВВОДА (Для того кто входит) -->
                 <div id="auth-scanner-block" style="width: 100%;">
                     <div id="qr-reader-container" style="display:none; margin-bottom: 16px;">
                         <div id="qr-reader"></div>
                         <button class="btn-secondary" style="margin-top: 10px;" onclick="stopQRScanner()">Отмена сканирования</button>
                     </div>
-                    
                     <div id="auth-scanner-ui">
                         <button class="btn-secondary scanner-btn" onclick="startQRScanner()">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
@@ -497,20 +529,52 @@
                         <button class="btn-primary" onclick="connectDeviceAuth()">Подключить</button>
                     </div>
                 </div>
-
                 <div id="device-auth-status" style="margin-top: 16px; font-size: 14px; color: #a1a1aa; min-height: 20px;"></div>
             </div>
         </div>
     </div>
 
-    <!-- === МОДАЛКА ЗВОНКОВ/ЗАПРОСОВ === -->
-    <div class="panel-overlay" id="modal-overlay">
-        <div class="alert-modal">
-            <h2 id="modal-title">...</h2>
-            <p id="modal-desc">...</p>
-            <div class="modal-btns">
-                <button class="btn-reject" id="modal-reject">Отклонить</button>
-                <button class="btn-accept" id="modal-accept">Принять</button>
+    <!-- === МЕНЮ СООБЩЕНИЯ (РЕАКЦИИ И ДЕЙСТВИЯ) === -->
+    <div class="panel-overlay" id="msg-menu-overlay">
+        <div class="panel" id="msg-menu-panel">
+            <div class="reactions-container" id="quick-reactions">
+                <!-- Заполняется JS -->
+            </div>
+            <div class="all-reactions-grid" id="all-reactions">
+                <!-- Заполняется JS -->
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <button class="msg-action-btn" onclick="copyMsgAction()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Копировать
+                </button>
+                <button class="msg-action-btn" id="btn-edit-msg" onclick="editMsgAction()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    Изменить
+                </button>
+                <button class="msg-action-btn" onclick="openForwardMenu()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
+                    Переслать
+                </button>
+                <button class="msg-action-btn danger" id="btn-del-msg" onclick="deleteMsgAction()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === ПАНЕЛЬ ПЕРЕСЫЛКИ СООБЩЕНИЯ === -->
+    <div class="panel-overlay" id="forward-overlay">
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Переслать кому</h2>
+                <button class="btn-close" onclick="closeForwardMenu()">✖</button>
+            </div>
+            <div class="panel-content" style="padding: 16px;">
+                <div class="forward-list" id="forward-list">
+                    <!-- Заполняется JS -->
+                </div>
             </div>
         </div>
     </div>
@@ -520,43 +584,34 @@
     <audio id="incoming-ringtone" src="souncall.mp3" loop preload="auto"></audio>
 
     <script>
-        // === БАЗА, АВТОРИЗАЦИЯ И УСТРОЙСТВА ===
+        // === БАЗА И УСТРОЙСТВА ===
         let currentUser = JSON.parse(localStorage.getItem('fluger_user'));
         let selectedAvatar = null;
         let myDeviceId = localStorage.getItem('fluger_device_id');
         
-        // Генерация ID устройства
         if (!myDeviceId) {
             myDeviceId = Math.random().toString(36).substr(2, 9);
             localStorage.setItem('fluger_device_id', myDeviceId);
         }
 
-        // Обновление текущего устройства
         function updateCurrentDevice() {
             if (!currentUser) return;
             if (!currentUser.devices) currentUser.devices = [];
             
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             const devIndex = currentUser.devices.findIndex(d => d.id === myDeviceId);
-            
-            // Симуляция IP. В реальном приложении это делается через бэкенд
             const fakeIp = localStorage.getItem('fluger_fake_ip') || ('192.168.1.' + Math.floor(Math.random() * 255));
             localStorage.setItem('fluger_fake_ip', fakeIp);
 
             const devInfo = {
-                id: myDeviceId,
-                type: isMobile ? 'phone' : 'pc',
-                name: isMobile ? 'Смартфон' : 'Компьютер',
-                ip: fakeIp,
-                country: 'Скрыто', 
-                lastActive: new Date().toLocaleTimeString() + ' ' + new Date().toLocaleDateString()
+                id: myDeviceId, type: isMobile ? 'phone' : 'pc',
+                name: isMobile ? 'Смартфон' : 'ПК (Браузер)',
+                ip: fakeIp, country: 'Скрыто', 
+                lastActive: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' ' + new Date().toLocaleDateString()
             };
 
-            if (devIndex >= 0) {
-                currentUser.devices[devIndex] = devInfo;
-            } else {
-                currentUser.devices.push(devInfo);
-            }
+            if (devIndex >= 0) currentUser.devices[devIndex] = devInfo;
+            else currentUser.devices.push(devInfo);
             saveUserToStorage();
         }
 
@@ -579,237 +634,107 @@
             }
         }
 
-        function resetAuth() {
-            document.querySelectorAll('.auth-step, .auth-buttons').forEach(el => el.classList.remove('active'));
-            document.getElementById('auth-init').classList.add('active');
-        }
-        function showLogin() {
-            document.querySelectorAll('.auth-step, .auth-buttons').forEach(el => el.classList.remove('active'));
-            document.getElementById('auth-login').classList.add('active');
-        }
+        // Авторизация
+        function resetAuth() { document.querySelectorAll('.auth-step, .auth-buttons').forEach(el => el.classList.remove('active')); document.getElementById('auth-init').classList.add('active'); }
+        function showLogin() { document.querySelectorAll('.auth-step, .auth-buttons').forEach(el => el.classList.remove('active')); document.getElementById('auth-login').classList.add('active'); }
         function showRegStep(step) {
             if (step === 2 && !document.getElementById('reg-name').value.trim()) return alert("Введите имя!");
             if (step === 3 && !document.getElementById('reg-user').value.trim()) return alert("Введите юз!");
             if (step === 4 && !document.getElementById('reg-pass').value.trim()) return alert("Введите пароль!");
-            document.querySelectorAll('.auth-step, .auth-buttons').forEach(el => el.classList.remove('active'));
-            document.getElementById('reg-step-' + step).classList.add('active');
+            document.querySelectorAll('.auth-step, .auth-buttons').forEach(el => el.classList.remove('active')); document.getElementById('reg-step-' + step).classList.add('active');
         }
-
-        function selectPreset(imgEl) {
-            document.querySelectorAll('.avatar-preset').forEach(el => el.classList.remove('selected'));
-            imgEl.classList.add('selected');
-            selectedAvatar = imgEl.src;
-        }
-        function handleFileUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => { selectedAvatar = ev.target.result; alert("Фото загружено!"); };
-            reader.readAsDataURL(file);
-        }
-
+        function selectPreset(imgEl) { document.querySelectorAll('.avatar-preset').forEach(el => el.classList.remove('selected')); imgEl.classList.add('selected'); selectedAvatar = imgEl.src; }
+        function handleFileUpload(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { selectedAvatar = ev.target.result; alert("Фото загружено!"); }; reader.readAsDataURL(file); }
         function finishReg(skipAvatar = false) {
-            const name = document.getElementById('reg-name').value.trim();
-            const user = document.getElementById('reg-user').value.trim();
-            const pass = document.getElementById('reg-pass').value;
+            const name = document.getElementById('reg-name').value.trim(); const user = document.getElementById('reg-user').value.trim(); const pass = document.getElementById('reg-pass').value;
             let finalAvatar = skipAvatar || !selectedAvatar ? "" : selectedAvatar;
-
             currentUser = { displayName: name, username: user, password: pass, avatar: finalAvatar, devices: [] };
-            saveUserToStorage();
-            checkAuth();
+            saveUserToStorage(); checkAuth();
         }
-
         function doLogin() {
-            const user = document.getElementById('login-user').value.trim();
-            const pass = document.getElementById('login-pass').value;
+            const user = document.getElementById('login-user').value.trim(); const pass = document.getElementById('login-pass').value;
             let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
-            if (allAccounts[user] && allAccounts[user].password === pass) {
-                currentUser = allAccounts[user];
-                saveUserToStorage();
-                checkAuth();
-            } else {
-                alert("Неверный юз или пароль!");
-            }
+            if (allAccounts[user] && allAccounts[user].password === pass) { currentUser = allAccounts[user]; saveUserToStorage(); checkAuth(); } else alert("Неверный юз или пароль!");
         }
-
         function doLogout() {
-            if (currentUser && currentUser.devices) {
-                currentUser.devices = currentUser.devices.filter(d => d.id !== myDeviceId);
-                saveUserToStorage();
-            }
-            localStorage.removeItem('fluger_user');
-            if(peer) peer.destroy();
-            location.reload();
+            if (currentUser && currentUser.devices) { currentUser.devices = currentUser.devices.filter(d => d.id !== myDeviceId); saveUserToStorage(); }
+            localStorage.removeItem('fluger_user'); if(peer) peer.destroy(); location.reload();
         }
 
         function renderAvatarHtml(name, avatarStr) {
-            if (avatarStr && (avatarStr.startsWith('data:') || avatarStr.startsWith('http'))) {
-                return `<img src="${avatarStr}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
-            }
+            if (avatarStr && (avatarStr.startsWith('data:') || avatarStr.startsWith('http'))) return `<img src="${avatarStr}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
             return name ? name.charAt(0).toUpperCase() : '?';
         }
 
-        // === ПАНЕЛЬ ПРОФИЛЯ ===
+        // === ПАНЕЛИ ===
         function openProfilePanel() {
             document.getElementById('panel-avatar').innerHTML = renderAvatarHtml(currentUser.displayName, currentUser.avatar);
-            document.getElementById('panel-name').innerText = currentUser.displayName;
-            document.getElementById('panel-user').innerText = '@' + currentUser.username;
+            document.getElementById('panel-name').innerText = currentUser.displayName; document.getElementById('panel-user').innerText = '@' + currentUser.username;
             document.getElementById('profile-panel-overlay').classList.add('visible');
         }
-        function closeProfilePanel() {
-            document.getElementById('profile-panel-overlay').classList.remove('visible');
-            document.getElementById('profile-dropdown').classList.remove('active');
-        }
+        function closeProfilePanel() { document.getElementById('profile-panel-overlay').classList.remove('visible'); document.getElementById('profile-dropdown').classList.remove('active'); }
         function toggleDropdown() { document.getElementById('profile-dropdown').classList.toggle('active'); }
         
-        // РЕДАКТИРОВАНИЕ ПРОФИЛЯ
         let editAvatarTemp = null;
-        function openEditProfile() {
-            closeProfilePanel();
-            editAvatarTemp = currentUser.avatar;
-            document.getElementById('edit-name').value = currentUser.displayName;
-            document.getElementById('edit-user').value = currentUser.username;
-            document.getElementById('edit-profile-overlay').classList.add('visible');
-        }
+        function openEditProfile() { closeProfilePanel(); editAvatarTemp = currentUser.avatar; document.getElementById('edit-name').value = currentUser.displayName; document.getElementById('edit-user').value = currentUser.username; document.getElementById('edit-profile-overlay').classList.add('visible'); }
         function closeEditProfile() { document.getElementById('edit-profile-overlay').classList.remove('visible'); }
-        function handleEditAvatar(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => { editAvatarTemp = ev.target.result; alert("Новое фото загружено"); };
-            reader.readAsDataURL(file);
-        }
+        function handleEditAvatar(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (ev) => { editAvatarTemp = ev.target.result; alert("Фото загружено"); }; reader.readAsDataURL(file); }
         function saveProfileEdit() {
-            const newName = document.getElementById('edit-name').value.trim();
-            const newUser = document.getElementById('edit-user').value.trim();
+            const newName = document.getElementById('edit-name').value.trim(); const newUser = document.getElementById('edit-user').value.trim();
             if (!newName || !newUser) return alert("Заполните поля!");
-
-            const oldUser = currentUser.username;
-            currentUser.displayName = newName;
-            currentUser.username = newUser;
-            currentUser.avatar = editAvatarTemp;
-
-            localStorage.setItem('fluger_user', JSON.stringify(currentUser));
-            let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
-            delete allAccounts[oldUser];
-            allAccounts[newUser] = currentUser;
-            localStorage.setItem('fluger_accounts', JSON.stringify(allAccounts));
-
+            const oldUser = currentUser.username; currentUser.displayName = newName; currentUser.username = newUser; currentUser.avatar = editAvatarTemp;
+            saveUserToStorage(); let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}'); delete allAccounts[oldUser]; allAccounts[newUser] = currentUser; localStorage.setItem('fluger_accounts', JSON.stringify(allAccounts));
             closeEditProfile();
-            
-            if (oldUser !== newUser) {
-                alert("Юзернейм изменен, идет переподключение...");
-                if (peer) peer.destroy();
-                initApp();
-            } else {
-                document.getElementById('my-avatar-display').innerHTML = renderAvatarHtml(currentUser.displayName, currentUser.avatar);
-            }
+            if (oldUser !== newUser) { alert("Юзернейм изменен, идет переподключение..."); if (peer) peer.destroy(); initApp(); } else document.getElementById('my-avatar-display').innerHTML = renderAvatarHtml(currentUser.displayName, currentUser.avatar);
         }
 
-        // === ПАНЕЛЬ "УСТРОЙСТВА" ===
-        function openDevicesPanel() {
-            closeProfilePanel();
-            renderDevicesList();
-            document.getElementById('devices-panel-overlay').classList.add('visible');
-        }
-        
-        function closeDevicesPanel() {
-            document.getElementById('devices-panel-overlay').classList.remove('visible');
-        }
-
+        function openDevicesPanel() { closeProfilePanel(); renderDevicesList(); document.getElementById('devices-panel-overlay').classList.add('visible'); }
+        function closeDevicesPanel() { document.getElementById('devices-panel-overlay').classList.remove('visible'); }
         function renderDevicesList() {
-            const listEl = document.getElementById('devices-list');
-            listEl.innerHTML = '';
-            
+            const listEl = document.getElementById('devices-list'); listEl.innerHTML = '';
             if (!currentUser.devices) currentUser.devices = [];
-            
             currentUser.devices.forEach(device => {
                 const isCurrent = device.id === myDeviceId;
                 const iconSvg = device.type === 'phone' 
                     ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`
                     : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`;
-                
-                const terminateBtn = !isCurrent 
-                    ? `<button class="btn-terminate" onclick="terminateDevice('${device.id}')">Завершить сеанс</button>`
-                    : `<span style="color:#4ade80; font-size:12px; font-weight:600;">Текущее устройство</span>`;
-
-                listEl.innerHTML += `
-                    <div class="device-item">
-                        <div class="device-icon">${iconSvg}</div>
-                        <div class="device-info">
-                            <div class="device-name">${device.name}</div>
-                            <div class="device-meta">${device.country} • IP: ${device.ip}<br>Последняя активность: ${device.lastActive}</div>
-                        </div>
-                        ${terminateBtn}
-                    </div>
-                `;
+                const terminateBtn = !isCurrent ? `<button class="btn-terminate" onclick="terminateDevice('${device.id}')">Завершить</button>` : `<span style="color:#4ade80; font-size:12px; font-weight:600;">Текущее</span>`;
+                listEl.innerHTML += `<div class="device-item"><div class="device-icon">${iconSvg}</div><div class="device-info"><div class="device-name">${device.name}</div><div class="device-meta">${device.country} • IP: ${device.ip}<br>Был: ${device.lastActive}</div></div>${terminateBtn}</div>`;
             });
         }
+        function terminateDevice(id) { if(confirm("Завершить сеанс?")) { currentUser.devices = currentUser.devices.filter(d => d.id !== id); saveUserToStorage(); renderDevicesList(); } }
 
-        function terminateDevice(id) {
-            if(confirm("Точно завершить сеанс на этом устройстве? Оно больше не сможет получать сообщения до нового входа.")) {
-                currentUser.devices = currentUser.devices.filter(d => d.id !== id);
-                saveUserToStorage();
-                renderDevicesList();
-            }
-        }
-
-
-        // === АВТОРИЗАЦИЯ ДРУГОГО УСТРОЙСТВА СО СИНХРОНИЗАЦИЕЙ БАЗЫ ДАННЫХ ===
-        let authPeer = null;
-        let isAuthLoggedIn = false;
-        let html5QrCode = null;
+        // === АВТОРИЗАЦИЯ УСТРОЙСТВА ===
+        let authPeer = null; let isAuthLoggedIn = false; let html5QrCode = null;
 
         function openDeviceAuthPanel(loggedIn) {
-            isAuthLoggedIn = loggedIn;
-            if(!loggedIn) resetAuth();
-            
-            const overlay = document.getElementById('device-auth-overlay');
-            const title = document.getElementById('device-auth-title');
-            const genBlock = document.getElementById('auth-generator-block');
-            const scanBlock = document.getElementById('auth-scanner-block');
+            isAuthLoggedIn = loggedIn; if(!loggedIn) resetAuth();
+            const overlay = document.getElementById('device-auth-overlay'); const title = document.getElementById('device-auth-title');
+            const genBlock = document.getElementById('auth-generator-block'); const scanBlock = document.getElementById('auth-scanner-block');
             const statusTxt = document.getElementById('device-auth-status');
-            
-            overlay.classList.add('visible');
-            statusTxt.innerText = "";
+            overlay.classList.add('visible'); statusTxt.innerText = "";
             if(authPeer) { authPeer.destroy(); authPeer = null; }
 
             if (loggedIn) {
-                // МЫ В АККАУНТЕ: Показываем код
-                title.innerText = "Войти на другом устройстве";
-                genBlock.style.display = "block";
-                scanBlock.style.display = "none";
-                
+                title.innerText = "Войти на другом устройстве"; genBlock.style.display = "block"; scanBlock.style.display = "none";
                 const generatedCode = Math.floor(10000 + Math.random() * 90000).toString();
                 document.getElementById('device-code-txt').innerText = generatedCode;
                 document.getElementById('device-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${generatedCode}&bgcolor=ffffff`;
-                statusTxt.innerText = "Ожидание сканирования...";
-                statusTxt.style.color = "#a1a1aa";
+                statusTxt.innerText = "Ожидание сканирования..."; statusTxt.style.color = "#a1a1aa";
                 
                 authPeer = new Peer('fluger-auth-' + generatedCode, { config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
                 authPeer.on('connection', conn => {
                     conn.on('data', data => {
                         if (data.type === 'AUTH_REQ') {
-                            // ПЕРЕДАЕМ НЕ ТОЛЬКО АККАУНТ, НО И ИСТОРИЮ ЧАТОВ/КОНТАКТОВ!
-                            conn.send({ 
-                                type: 'AUTH_CREDS', 
-                                creds: currentUser,
-                                friendsData: JSON.stringify(friends),
-                                chatsData: JSON.stringify(chatHistory)
-                            });
-                            statusTxt.innerText = "Устройство привязано. Синхронизация успешна!";
-                            statusTxt.style.color = "#4ade80";
+                            conn.send({ type: 'AUTH_CREDS', creds: currentUser, friendsData: JSON.stringify(friends), chatsData: JSON.stringify(chatHistory) });
+                            statusTxt.innerText = "Синхронизация успешна!"; statusTxt.style.color = "#4ade80";
                             setTimeout(closeDeviceAuthPanel, 2000);
                         }
                     });
                 });
             } else {
-                // МЫ НЕ В АККАУНТЕ: Показываем сканер/ввод
-                title.innerText = "Вход через устройство";
-                genBlock.style.display = "none";
-                scanBlock.style.display = "block";
-                document.getElementById('device-auth-input').value = "";
-                authPeer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+                title.innerText = "Вход через устройство"; genBlock.style.display = "none"; scanBlock.style.display = "block";
+                document.getElementById('device-auth-input').value = ""; authPeer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
             }
             if(loggedIn) closeProfilePanel();
         }
@@ -817,219 +742,169 @@
         function connectDeviceAuth(codeOverride = null) {
             const code = codeOverride || document.getElementById('device-auth-input').value.trim();
             if (code.length !== 5) return alert("Введите 5 цифр!");
-            
-            const statusTxt = document.getElementById('device-auth-status');
-            statusTxt.innerText = "Подключение...";
-            statusTxt.style.color = "#a1a1aa";
-            
+            const statusTxt = document.getElementById('device-auth-status'); statusTxt.innerText = "Подключение..."; statusTxt.style.color = "#a1a1aa";
             const conn = authPeer.connect('fluger-auth-' + code, { reliable: true });
             
-            conn.on('open', () => {
-                conn.send({ type: 'AUTH_REQ' });
-                statusTxt.innerText = "Запрос отправлен, загрузка истории...";
-            });
+            conn.on('open', () => { conn.send({ type: 'AUTH_REQ' }); statusTxt.innerText = "Загрузка истории..."; });
             conn.on('data', data => {
                 if (data.type === 'AUTH_CREDS') {
                     currentUser = data.creds;
-                    
-                    // ПРИНИМАЕМ ИСТОРИЮ ЧАТОВ И КОНТАКТОВ
-                    if (data.friendsData) {
-                        friends = JSON.parse(data.friendsData);
-                        localStorage.setItem('fluger_friends', data.friendsData);
-                    }
-                    if (data.chatsData) {
-                        chatHistory = JSON.parse(data.chatsData);
-                        localStorage.setItem('fluger_chats', data.chatsData);
-                    }
-
-                    saveUserToStorage(); 
-                    updateCurrentDevice();
-                    statusTxt.innerText = "Успешный вход и синхронизация!";
-                    statusTxt.style.color = "#4ade80";
+                    if (data.friendsData) { friends = JSON.parse(data.friendsData); localStorage.setItem('fluger_friends', data.friendsData); }
+                    if (data.chatsData) { chatHistory = JSON.parse(data.chatsData); localStorage.setItem('fluger_chats', data.chatsData); }
+                    saveUserToStorage(); updateCurrentDevice();
+                    statusTxt.innerText = "Успешный вход!"; statusTxt.style.color = "#4ade80";
                     setTimeout(() => { closeDeviceAuthPanel(); checkAuth(); }, 1500);
                 }
             });
-            conn.on('error', () => { 
-                statusTxt.innerText = "Ошибка подключения (неверный код)"; 
-                statusTxt.style.color = "#ef4444";
-                stopQRScanner();
-            });
+            conn.on('error', () => { statusTxt.innerText = "Ошибка (неверный код)"; statusTxt.style.color = "#ef4444"; stopQRScanner(); });
         }
 
-        function closeDeviceAuthPanel() {
-            document.getElementById('device-auth-overlay').classList.remove('visible');
-            if(authPeer) { authPeer.destroy(); authPeer = null;}
-            stopQRScanner();
-        }
-
+        function closeDeviceAuthPanel() { document.getElementById('device-auth-overlay').classList.remove('visible'); if(authPeer) { authPeer.destroy(); authPeer = null;} stopQRScanner(); }
         function startQRScanner() {
-            document.getElementById('auth-scanner-ui').style.display = 'none';
-            document.getElementById('qr-reader-container').style.display = 'block';
-            
+            document.getElementById('auth-scanner-ui').style.display = 'none'; document.getElementById('qr-reader-container').style.display = 'block';
             html5QrCode = new Html5Qrcode("qr-reader");
             html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, 
-                (decodedText) => {
-                    stopQRScanner();
-                    document.getElementById('device-auth-input').value = decodedText;
-                    connectDeviceAuth(decodedText);
-                },
-                (err) => {}
-            ).catch(err => {
-                alert("Камера недоступна или заблокирована браузером");
-                stopQRScanner();
-            });
+                (decodedText) => { stopQRScanner(); document.getElementById('device-auth-input').value = decodedText; connectDeviceAuth(decodedText); }, (err) => {}
+            ).catch(err => { alert("Камера недоступна"); stopQRScanner(); });
         }
-
         function stopQRScanner() {
-            if(html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                    html5QrCode = null;
-                }).catch(e=>{});
-            }
-            document.getElementById('qr-reader-container').style.display = 'none';
-            document.getElementById('auth-scanner-ui').style.display = 'block';
+            if(html5QrCode) { html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode = null; }).catch(e=>{}); }
+            document.getElementById('qr-reader-container').style.display = 'none'; document.getElementById('auth-scanner-ui').style.display = 'block';
         }
 
-
-        // === ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ (ЧАТЫ И ЗВОНКИ) ===
-        let peer = null;
-        let localStream = null;
-        let currentCall = null;
-        let isMuted = false;
-        
+        // === ОСНОВНАЯ ЛОГИКА (ЧАТЫ И ЗВОНКИ) ===
+        let peer = null; let localStream = null; let currentCall = null; let isMuted = false;
         let friends = JSON.parse(localStorage.getItem('fluger_friends') || '{}');
         let chatHistory = JSON.parse(localStorage.getItem('fluger_chats') || '{}');
         let unreadCounts = JSON.parse(localStorage.getItem('fluger_unread') || '{}');
         let activeChatId = null;
 
         function setConnStatus(state) {
-            const txt = document.getElementById('conn-text');
-            txt.className = 'main-status'; 
-            if (state === 'connecting') { 
-                txt.innerHTML = 'Подключение<span class="animated-dots"></span>'; 
-                txt.classList.add('connecting');
-            } else if (state === 'connected') { 
-                txt.innerHTML = 'Fluger'; 
-            } else if (state === 'error') { 
-                txt.innerHTML = 'Сессия передана или Ошибка сети'; 
-                txt.classList.add('error');
-            }
+            const txt = document.getElementById('conn-text'); txt.className = 'main-status'; 
+            if (state === 'connecting') { txt.innerHTML = 'Подключение<span class="animated-dots"></span>'; txt.classList.add('connecting'); }
+            else if (state === 'connected') { txt.innerHTML = 'Fluger'; }
+            else if (state === 'error') { txt.innerHTML = 'Сессия перехвачена'; txt.classList.add('error'); }
         }
 
         function initApp() {
             document.getElementById('my-avatar-display').innerHTML = renderAvatarHtml(currentUser.displayName, currentUser.avatar);
-
             setConnStatus('connecting');
             peer = new Peer(currentUser.username, { config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
 
             peer.on('open', () => {
                 setConnStatus('connected');
-                navigator.mediaDevices.getUserMedia({ video: false, audio: true })
-                    .then(stream => localStream = stream)
-                    .catch(err => console.error("Микрофон недоступен", err));
+                navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then(stream => localStream = stream).catch(err => console.error("Микрофон недоступен", err));
             });
-            
-            // Если мы заходим с нового устройства, старое выдаст disconnected. 
-            // Чтобы они не дрались бесконечно за соединение, делаем задержку реконнекта.
             peer.on('disconnected', () => { 
                 setConnStatus('error'); 
-                // Попытка вернуть коннект если мы что-то нажмем (тихая делёжка онлайна)
                 setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 5000); 
             });
-            
-            peer.on('error', err => { setConnStatus('error'); console.error(err); });
 
             peer.on('connection', conn => {
                 conn.on('data', data => {
                     if (data.type === 'CHAT') {
-                        playNotify();
-                        saveFriendProfile(data.from, data.profile);
-                        saveMessage(data.from, data.from, data.text);
+                        playNotify(); saveFriendProfile(data.from, data.profile);
+                        saveMessage(data.msgId, data.from, data.from, data.text, data.timestamp);
+                        if (activeChatId === data.from) {
+                            sendData(data.from, { type: 'READ_RECEIPT', from: currentUser.username });
+                        }
                     }
-                    else if (data.type === 'FRIEND_REQ') {
-                        playNotify();
-                        showModal("Заявка в друзья", `${data.profile.displayName} хочет добавить вас.`, 
-                            () => { 
-                                saveFriendProfile(data.from, data.profile);
-                                sendData(data.from, { type: 'FRIEND_ACC', from: currentUser.username, profile: getMyProfile() });
-                            }, () => {}
-                        );
+                    else if (data.type === 'READ_RECEIPT') {
+                        const msgs = chatHistory[data.from] || [];
+                        msgs.forEach(m => { if (m.from === currentUser.username) m.status = 'read'; });
+                        localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
+                        if (activeChatId === data.from) renderMessages();
                     }
-                    else if (data.type === 'FRIEND_ACC') {
-                        playNotify();
-                        saveFriendProfile(data.from, data.profile);
-                        showStatus("Заявка принята!", '#4ade80');
+                    else if (data.type === 'EDIT_MSG') {
+                        const msgs = chatHistory[data.from];
+                        if(msgs) {
+                            const m = msgs.find(x => x.id === data.msgId);
+                            if(m) { m.text = data.text; m.edited = true; localStorage.setItem('fluger_chats', JSON.stringify(chatHistory)); if(activeChatId===data.from) renderMessages(); }
+                        }
+                    }
+                    else if (data.type === 'DEL_MSG') {
+                        const msgs = chatHistory[data.from];
+                        if(msgs) {
+                            chatHistory[data.from] = msgs.filter(x => x.id !== data.msgId);
+                            localStorage.setItem('fluger_chats', JSON.stringify(chatHistory)); if(activeChatId===data.from) renderMessages();
+                        }
+                    }
+                    else if (data.type === 'REACT_MSG') {
+                        const msgs = chatHistory[data.from];
+                        if(msgs) {
+                            const m = msgs.find(x => x.id === data.msgId);
+                            if(m) { m.reactions = m.reactions || []; m.reactions.push(data.emoji); localStorage.setItem('fluger_chats', JSON.stringify(chatHistory)); if(activeChatId===data.from) renderMessages(); }
+                        }
                     }
                     else if (data.type === 'CALL_REJ') {
-                        stopOutgoingCallTone();
-                        document.getElementById('call-status').innerText = "Отклонено";
-                        saveSystemMessage(data.from, "Собеседник отклонил звонок");
-                        setTimeout(() => setCallUI(false), 2000);
+                        stopOutgoingCallTone(); document.getElementById('call-status').innerText = "Отклонено";
+                        saveSystemMessage(data.from, "Собеседник отклонил звонок"); setTimeout(() => setCallUI(false), 2000);
                     }
                 });
             });
 
             peer.on('call', call => {
                 if (currentCall) { call.close(); return; }
-                
                 startIncomingRingtone();
                 const callerProfile = friends[call.peer] || { displayName: call.peer, avatar: "" };
-                
                 showModal("Входящий звонок", `Звонит: ${callerProfile.displayName}`, 
-                    () => { 
-                        stopIncomingRingtone();
-                        currentCall = call;
-                        call.answer(localStream);
-                        openChat(call.peer);
-                        setupCall(call);
-                        saveSystemMessage(call.peer, "Входящий звонок");
-                    },
-                    () => { 
-                        stopIncomingRingtone();
-                        sendData(call.peer, { type: 'CALL_REJ', from: currentUser.username });
-                        saveSystemMessage(call.peer, "Пропущенный звонок");
-                        call.close();
-                    }
+                    () => { stopIncomingRingtone(); currentCall = call; call.answer(localStream); openChat(call.peer); setupCall(call); saveSystemMessage(call.peer, "Входящий звонок"); },
+                    () => { stopIncomingRingtone(); sendData(call.peer, { type: 'CALL_REJ', from: currentUser.username }); saveSystemMessage(call.peer, "Пропущенный звонок"); call.close(); }
                 );
             });
-
             renderFriends();
         }
 
         function getMyProfile() { return { displayName: currentUser.displayName, avatar: currentUser.avatar }; }
-
-        function saveFriendProfile(username, profileObj) {
-            if (!friends[username]) friends[username] = {};
-            friends[username] = profileObj;
-            localStorage.setItem('fluger_friends', JSON.stringify(friends));
-            renderFriends();
-        }
-
+        function saveFriendProfile(username, profileObj) { if (!friends[username]) friends[username] = {}; friends[username] = profileObj; localStorage.setItem('fluger_friends', JSON.stringify(friends)); renderFriends(); }
         function sendData(targetUser, dataObj) {
-            // Если сеть была перехвачена другим устройством, возвращаем её перед отправкой
             if (peer.disconnected && !peer.destroyed) peer.reconnect();
-            
             const conn = peer.connect(targetUser, { reliable: true });
             conn.on('open', () => { conn.send(dataObj); setTimeout(() => conn.close(), 500); });
-            conn.on('error', () => showStatus("Абонент не в сети", "#ef4444"));
         }
 
-        // --- ИНТЕРФЕЙС И ЧАТ ---
+        // ПОИСК И ЧАТЫ
+        function handleSearch(e) {
+            const query = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const list = document.getElementById('friend-list');
+            const searchRes = document.getElementById('search-results');
+            
+            if (!query) { list.style.display = 'block'; searchRes.style.display = 'none'; return; }
+            list.style.display = 'none'; searchRes.style.display = 'block'; searchRes.innerHTML = '';
+            
+            const allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
+            let found = false;
+            Object.keys(allAccs).forEach(user => {
+                if (user !== currentUser.username && user.includes(query)) {
+                    found = true;
+                    const p = allAccs[user];
+                    searchRes.innerHTML += `
+                        <li class="friend-item" onclick="startChatFromSearch('${user}')">
+                            <div class="friend-avatar-small">${renderAvatarHtml(p.displayName, p.avatar)}</div>
+                            <div class="friend-item-info"><div class="friend-item-name">${p.displayName}</div><div class="friend-item-user">@${user}</div></div>
+                        </li>
+                    `;
+                }
+            });
+            if(!found) searchRes.innerHTML = `<div style="text-align:center; color:#a1a1aa; padding: 20px; font-size:14px;">Ничего не найдено</div>`;
+        }
+
+        function startChatFromSearch(username) {
+            document.getElementById('friend-input').value = '';
+            document.getElementById('friend-list').style.display = 'block';
+            document.getElementById('search-results').style.display = 'none';
+            
+            const allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
+            if (allAccs[username]) saveFriendProfile(username, { displayName: allAccs[username].displayName, avatar: allAccs[username].avatar });
+            openChat(username);
+        }
+
         function renderFriends() {
-            const listEl = document.getElementById('friend-list');
-            listEl.innerHTML = '';
+            const listEl = document.getElementById('friend-list'); listEl.innerHTML = '';
             Object.keys(friends).forEach(username => {
-                const profile = friends[username];
-                const unread = unreadCounts[username] || 0;
-                const li = document.createElement('li');
-                li.className = `friend-item ${activeChatId === username ? 'active' : ''}`;
-                let unreadHtml = unread > 0 ? `<div class="unread-badge">${unread}</div>` : '';
-                li.innerHTML = `
-                    <div class="friend-avatar-small">${renderAvatarHtml(profile.displayName, profile.avatar)}</div>
-                    <div class="friend-item-info"><div class="friend-item-name">${profile.displayName}</div></div>
-                    ${unreadHtml}
-                `;
+                const profile = friends[username]; const unread = unreadCounts[username] || 0;
+                const li = document.createElement('li'); li.className = `friend-item ${activeChatId === username ? 'active' : ''}`;
+                li.innerHTML = `<div class="friend-avatar-small">${renderAvatarHtml(profile.displayName, profile.avatar)}</div><div class="friend-item-info"><div class="friend-item-name">${profile.displayName}</div></div>${unread > 0 ? `<div class="unread-badge">${unread}</div>` : ''}`;
                 li.onclick = () => openChat(username);
                 listEl.appendChild(li);
             });
@@ -1038,208 +913,232 @@
         function closeChatMobile() {
             document.getElementById('sidebar').classList.remove('hidden-mobile');
             document.getElementById('main-area').classList.remove('visible-mobile');
-            activeChatId = null;
-            renderFriends();
-            
-            // Восстанавливаем пустой фон на ПК если мы закрыли чат
             document.getElementById('empty-state').style.display = 'flex';
+            activeChatId = null; renderFriends();
         }
 
         function openChat(username) {
-            activeChatId = username;
-            const profile = friends[username];
-            
-            unreadCounts[username] = 0;
-            localStorage.setItem('fluger_unread', JSON.stringify(unreadCounts));
-
+            activeChatId = username; const profile = friends[username];
+            unreadCounts[username] = 0; localStorage.setItem('fluger_unread', JSON.stringify(unreadCounts));
             document.getElementById('chat-title-name').innerText = profile.displayName;
             document.getElementById('chat-avatar-top').innerHTML = renderAvatarHtml(profile.displayName, profile.avatar);
             document.getElementById('call-avatar').innerHTML = renderAvatarHtml(profile.displayName, profile.avatar);
             
-            // На мобильных скрываем сайдбар, показываем чат
+            document.getElementById('empty-state').style.display = 'none';
             document.getElementById('sidebar').classList.add('hidden-mobile');
             document.getElementById('main-area').classList.add('visible-mobile');
-            document.getElementById('empty-state').style.display = 'none';
             
-            renderFriends();
-            renderMessages();
+            // Отправляем READ_RECEIPT
+            sendData(username, { type: 'READ_RECEIPT', from: currentUser.username });
+            
+            renderFriends(); renderMessages();
         }
 
         function renderMessages() {
-            const box = document.getElementById('chat-messages');
-            box.innerHTML = '';
+            const box = document.getElementById('chat-messages'); box.innerHTML = '';
             const msgs = chatHistory[activeChatId] || [];
             msgs.forEach(m => {
-                const div = document.createElement('div');
+                const w = document.createElement('div');
                 if (m.type === 'system') {
-                    div.className = 'msg system';
-                    div.innerText = m.text;
+                    w.className = 'msg system'; w.innerText = m.text;
                 } else {
-                    div.className = `msg ${m.from === currentUser.username ? 'out' : 'in'}`;
-                    div.innerText = m.text;
+                    w.className = `msg-wrapper ${m.from === currentUser.username ? 'out' : 'in'}`;
+                    
+                    const ticks = m.from === currentUser.username ? (m.status === 'read' ? '<span class="msg-ticks read">✓✓</span>' : '<span class="msg-ticks">✓</span>') : '';
+                    const edited = m.edited ? 'изм. ' : '';
+                    let reactsHtml = '';
+                    if (m.reactions && m.reactions.length > 0) {
+                        reactsHtml = `<div class="msg-reactions ${m.from === currentUser.username ? 'out' : 'in'}">`;
+                        m.reactions.forEach(r => reactsHtml += `<div class="reaction-badge">${r}</div>`);
+                        reactsHtml += `</div>`;
+                    }
+
+                    w.innerHTML = `
+                        <div class="msg ${m.from === currentUser.username ? 'out' : 'in'}" onclick="openMsgMenu('${m.id}')">
+                            <div class="msg-text">${m.text}</div>
+                            <div class="msg-meta">${edited}${m.timestamp} ${ticks}</div>
+                        </div>
+                        ${reactsHtml}
+                    `;
                 }
-                box.appendChild(div);
+                box.appendChild(w);
             });
             box.scrollTop = box.scrollHeight;
         }
 
-        function saveMessage(chatId, from, text) {
+        function saveMessage(msgId, chatId, from, text, timestamp) {
             if (!chatHistory[chatId]) chatHistory[chatId] = [];
-            chatHistory[chatId].push({ from, text, type: 'text' });
+            chatHistory[chatId].push({ id: msgId, from: from, text: text, timestamp: timestamp, status: 'sent', type: 'text', edited: false, reactions: [] });
             localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
-            
-            if (activeChatId === chatId) { renderMessages(); } 
+            if (activeChatId === chatId) renderMessages();
             else if (from !== currentUser.username) {
                 unreadCounts[chatId] = (unreadCounts[chatId] || 0) + 1;
-                localStorage.setItem('fluger_unread', JSON.stringify(unreadCounts));
-                renderFriends();
+                localStorage.setItem('fluger_unread', JSON.stringify(unreadCounts)); renderFriends();
             }
         }
 
         function saveSystemMessage(chatId, text) {
             if (!chatHistory[chatId]) chatHistory[chatId] = [];
-            chatHistory[chatId].push({ text, type: 'system' });
+            chatHistory[chatId].push({ id: Date.now().toString(36), text, type: 'system' });
             localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
             if (activeChatId === chatId) renderMessages();
         }
 
+        let editingMsgId = null;
         function sendTextMessage() {
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
+            const input = document.getElementById('chat-input'); const text = input.value.trim();
             if (!text || !activeChatId) return;
             
-            saveMessage(activeChatId, currentUser.username, text);
-            sendData(activeChatId, { type: 'CHAT', text: text, from: currentUser.username, profile: getMyProfile() });
+            if (editingMsgId) {
+                // Edit
+                const msgs = chatHistory[activeChatId];
+                const m = msgs.find(x => x.id === editingMsgId);
+                if(m) {
+                    m.text = text; m.edited = true;
+                    localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
+                    sendData(activeChatId, { type: 'EDIT_MSG', msgId: editingMsgId, text: text });
+                }
+                cancelEdit(); renderMessages();
+            } else {
+                // New
+                const msgId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+                const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                saveMessage(msgId, activeChatId, currentUser.username, text, time);
+                sendData(activeChatId, { type: 'CHAT', msgId: msgId, text: text, from: currentUser.username, profile: getMyProfile(), timestamp: time });
+            }
             input.value = '';
         }
         document.getElementById('btn-send').onclick = sendTextMessage;
         document.getElementById('chat-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendTextMessage(); });
 
-        function showStatus(msg, color="#a1a1aa") {
-            const el = document.getElementById('add-status');
-            el.innerText = msg; el.style.color = color;
-            setTimeout(() => el.innerText = "", 4000);
+        // --- МЕНЮ СООБЩЕНИЯ ---
+        let selectedMsgId = null;
+        const emojis = ["👍","❤️","😂","😮","😢","🙏","👏","🔥","🎉","💯","✨","⭐","🤝","💪","😎","🥳","🤩","🥰","😡","🤬","🤢","🤮","🤔","🤫","🤯","🥶","🤠","😇","👽","🤡","👻","💀"];
+        
+        function initReactions() {
+            const quick = document.getElementById('quick-reactions'); quick.innerHTML = '';
+            for(let i=0; i<6; i++) { quick.innerHTML += `<button class="reaction-btn" onclick="addReaction('${emojis[i]}')">${emojis[i]}</button>`; }
+            quick.innerHTML += `<button class="reaction-btn expand" onclick="document.getElementById('all-reactions').classList.toggle('active')">></button>`;
+            
+            const all = document.getElementById('all-reactions'); all.innerHTML = '';
+            emojis.forEach(e => { all.innerHTML += `<button class="reaction-btn" onclick="addReaction('${e}')">${e}</button>`; });
+        }
+        initReactions();
+
+        function openMsgMenu(msgId) {
+            selectedMsgId = msgId;
+            const msg = chatHistory[activeChatId].find(m => m.id === msgId);
+            
+            document.getElementById('btn-edit-msg').style.display = (msg.from === currentUser.username) ? 'flex' : 'none';
+            document.getElementById('btn-del-msg').style.display = (msg.from === currentUser.username) ? 'flex' : 'none';
+            document.getElementById('all-reactions').classList.remove('active');
+            document.getElementById('msg-menu-overlay').classList.add('visible');
+        }
+        
+        document.getElementById('msg-menu-overlay').addEventListener('click', (e) => { if(e.target === document.getElementById('msg-menu-overlay')) document.getElementById('msg-menu-overlay').classList.remove('visible'); });
+
+        function closeMsgMenu() { document.getElementById('msg-menu-overlay').classList.remove('visible'); }
+
+        function copyMsgAction() {
+            const msg = chatHistory[activeChatId].find(m => m.id === selectedMsgId);
+            navigator.clipboard.writeText(msg.text).then(()=> closeMsgMenu());
         }
 
-        function addFriend() {
-            const targetUser = document.getElementById('friend-input').value.trim();
-            if (!targetUser) return;
-            if (targetUser === currentUser.username) return showStatus("Это ваш профиль", "#a1a1aa");
-            if (friends[targetUser]) return showStatus("Уже в контактах", "#a1a1aa");
+        function deleteMsgAction() {
+            chatHistory[activeChatId] = chatHistory[activeChatId].filter(m => m.id !== selectedMsgId);
+            localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
+            sendData(activeChatId, { type: 'DEL_MSG', msgId: selectedMsgId });
+            renderMessages(); closeMsgMenu();
+        }
+
+        function editMsgAction() {
+            const msg = chatHistory[activeChatId].find(m => m.id === selectedMsgId);
+            editingMsgId = selectedMsgId;
+            document.getElementById('chat-input').value = msg.text;
+            document.getElementById('edit-banner').classList.add('active');
+            closeMsgMenu(); document.getElementById('chat-input').focus();
+        }
+
+        function cancelEdit() { editingMsgId = null; document.getElementById('chat-input').value = ''; document.getElementById('edit-banner').classList.remove('active'); }
+
+        function addReaction(emoji) {
+            const m = chatHistory[activeChatId].find(x => x.id === selectedMsgId);
+            m.reactions = m.reactions || []; m.reactions.push(emoji);
+            localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
+            sendData(activeChatId, { type: 'REACT_MSG', msgId: selectedMsgId, emoji: emoji });
+            renderMessages(); closeMsgMenu();
+        }
+
+        // Пересылка
+        function openForwardMenu() {
+            closeMsgMenu();
+            const list = document.getElementById('forward-list'); list.innerHTML = '';
+            Object.keys(friends).forEach(u => {
+                const p = friends[u];
+                list.innerHTML += `<div class="forward-item" onclick="execForward('${u}')"><div class="friend-avatar-small">${renderAvatarHtml(p.displayName, p.avatar)}</div><div style="color:#fff; font-weight:600;">${p.displayName}</div></div>`;
+            });
+            document.getElementById('forward-overlay').classList.add('visible');
+        }
+        function closeForwardMenu() { document.getElementById('forward-overlay').classList.remove('visible'); }
+        function execForward(targetUsername) {
+            const msg = chatHistory[activeChatId].find(m => m.id === selectedMsgId);
+            const textToForward = msg.text;
             
-            showStatus("Поиск...", "#a1a1aa");
-            sendData(targetUser, { type: 'FRIEND_REQ', from: currentUser.username, profile: getMyProfile() });
-            setTimeout(() => showStatus("Запрос отправлен (если в сети)", "#4ade80"), 1000);
-            document.getElementById('friend-input').value = '';
+            const msgId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            saveMessage(msgId, targetUsername, currentUser.username, textToForward, time);
+            sendData(targetUsername, { type: 'CHAT', msgId: msgId, text: textToForward, from: currentUser.username, profile: getMyProfile(), timestamp: time });
+            
+            closeForwardMenu();
+            if(activeChatId !== targetUsername) openChat(targetUsername);
         }
 
         // --- ЗВОНКИ ---
         function setCallUI(isActive, isConnecting = false) {
-            const area = document.getElementById('call-area');
-            const avatar = document.getElementById('call-avatar');
-            const status = document.getElementById('call-status');
-            
+            const area = document.getElementById('call-area'); const avatar = document.getElementById('call-avatar'); const status = document.getElementById('call-status');
             if (isActive) {
                 area.classList.add('visible');
-                if (isConnecting) {
-                    status.innerText = "Идут гудки...";
-                    avatar.classList.remove('pulsing');
-                } else {
-                    status.innerText = "Идет разговор";
-                    avatar.classList.add('pulsing');
-                }
+                if (isConnecting) { status.innerText = "Идут гудки..."; avatar.classList.remove('pulsing'); } else { status.innerText = "Идет разговор"; avatar.classList.add('pulsing'); }
             } else {
-                area.classList.remove('visible');
-                document.getElementById('remote-audio').srcObject = null;
-                currentCall = null;
-                stopOutgoingCallTone();
-                stopIncomingRingtone();
-                
+                area.classList.remove('visible'); document.getElementById('remote-audio').srcObject = null; currentCall = null; stopOutgoingCallTone(); stopIncomingRingtone();
                 if (isMuted) toggleMute(); 
             }
         }
 
         function setupCall(call) {
-            call.on('stream', stream => {
-                stopOutgoingCallTone();
-                stopIncomingRingtone();
-                document.getElementById('remote-audio').srcObject = stream;
-                setCallUI(true, false);
-            });
+            call.on('stream', stream => { stopOutgoingCallTone(); stopIncomingRingtone(); document.getElementById('remote-audio').srcObject = stream; setCallUI(true, false); });
             call.on('close', () => { setCallUI(false); saveSystemMessage(call.peer, "Звонок завершен"); });
             call.on('error', () => setCallUI(false));
         }
 
         document.getElementById('btn-call').onclick = () => {
             if (!activeChatId || currentCall || !localStream) return;
-            
             if (peer.disconnected && !peer.destroyed) peer.reconnect();
-            
-            startOutgoingCallTone();
-            setCallUI(true, true);
-            const call = peer.call(activeChatId, localStream);
-            currentCall = call;
-            setupCall(call);
-            saveSystemMessage(activeChatId, "Исходящий звонок");
+            startOutgoingCallTone(); setCallUI(true, true);
+            const call = peer.call(activeChatId, localStream); currentCall = call; setupCall(call); saveSystemMessage(activeChatId, "Исходящий звонок");
         };
-
         document.getElementById('btn-hangup').onclick = () => { if (currentCall) currentCall.close(); setCallUI(false); };
 
         function toggleMute() {
-            if (!localStream) return;
-            isMuted = !isMuted;
-            localStream.getAudioTracks()[0].enabled = !isMuted;
+            if (!localStream) return; isMuted = !isMuted; localStream.getAudioTracks()[0].enabled = !isMuted;
             const btn = document.getElementById('btn-mute');
-            if (isMuted) {
-                btn.classList.add('muted');
-                document.getElementById('icon-mic-on').style.display = 'none';
-                document.getElementById('icon-mic-off').style.display = 'block';
-            } else {
-                btn.classList.remove('muted');
-                document.getElementById('icon-mic-on').style.display = 'block';
-                document.getElementById('icon-mic-off').style.display = 'none';
-            }
+            if (isMuted) { btn.classList.add('muted'); document.getElementById('icon-mic-on').style.display = 'none'; document.getElementById('icon-mic-off').style.display = 'block'; } 
+            else { btn.classList.remove('muted'); document.getElementById('icon-mic-on').style.display = 'block'; document.getElementById('icon-mic-off').style.display = 'none'; }
         }
 
-        // --- МОДАЛКА И ЗВУКИ ---
-        const overlay = document.getElementById('modal-overlay');
-        let modalAccCb, modalRejCb;
-        function showModal(title, desc, onAcc, onRej) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-desc').innerText = desc;
-            modalAccCb = onAcc; modalRejCb = onRej;
-            overlay.classList.add('visible');
-        }
-        function hideModal() { overlay.classList.remove('visible'); }
-        document.getElementById('modal-accept').onclick = () => { if(modalAccCb) modalAccCb(); hideModal(); };
-        document.getElementById('modal-reject').onclick = () => { if(modalRejCb) modalRejCb(); hideModal(); };
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+        // --- ЗВУКИ ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext; const audioCtx = new AudioContext();
         document.body.addEventListener('click', () => { if (audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
-
         function playTone(freq, type, duration, vol = 0.1) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + duration);
+            if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime); gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
-
-        let callToneInterval;
-        const incomingAudioElement = document.getElementById('incoming-ringtone');
-        
+        let callToneInterval; const incomingAudioElement = document.getElementById('incoming-ringtone');
         function playNotify() { playTone(600, 'sine', 0.1, 0.2); setTimeout(() => playTone(800, 'sine', 0.2, 0.2), 150); }
         function startIncomingRingtone() { incomingAudioElement.play().catch(e=>console.log(e)); }
         function stopIncomingRingtone() { incomingAudioElement.pause(); incomingAudioElement.currentTime = 0; }
-        function startOutgoingCallTone() {
-            if (callToneInterval) return;
-            const callTone = () => playTone(440, 'sine', 1.0, 0.05);
-            callTone(); callToneInterval = setInterval(callTone, 3000);
-        }
+        function startOutgoingCallTone() { if (callToneInterval) return; const callTone = () => playTone(440, 'sine', 1.0, 0.05); callTone(); callToneInterval = setInterval(callTone, 3000); }
         function stopOutgoingCallTone() { clearInterval(callToneInterval); callToneInterval = null; }
 
         // ЗАПУСК
