@@ -16,7 +16,7 @@
             background-color: #18181b;
             color: #e4e4e7;
             display: flex;
-            height: 100dvh; /* dvh решает проблему с клавиатурой на iOS/Android */
+            height: 100vh; height: 100dvh;
             width: 100vw;
             overflow: hidden;
             position: fixed;
@@ -68,8 +68,8 @@
         /* --- ГЛАВНЫЙ ИНТЕРФЕЙС --- */
         #app-screen { display: none; width: 100%; height: 100%; position: relative; }
         
-        /* ЛЕВАЯ ПАНЕЛЬ (Список) */
-        .sidebar { width: 340px; background: #202024; border-right: 1px solid #3f3f46; display: flex; flex-direction: column; z-index: 10; transition: transform 0.3s ease; flex-shrink: 0; position: relative;}
+        /* ЛЕВАЯ ПАНЕЛЬ */
+        .sidebar { width: 340px; background: #202024; border-right: 1px solid #3f3f46; display: flex; flex-direction: column; z-index: 10; flex-shrink: 0; position: relative;}
         .sidebar-inner { padding: 20px; display: flex; flex-direction: column; height: 100%; }
 
         .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-shrink: 0;}
@@ -102,7 +102,7 @@
         .unread-badge { background: #4ade80; color: #18181b; font-size: 11px; font-weight: 700; height: 20px; min-width: 20px; padding: 0 6px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
         /* ПРАВАЯ ПАНЕЛЬ (Чат/Звонок) */
-        .main-area { flex: 1; display: flex; flex-direction: column; background: #18181b; position: relative; overflow: hidden; min-width: 0; transition: transform 0.3s ease;}
+        .main-area { flex: 1; display: flex; flex-direction: column; background: #18181b; position: relative; overflow: hidden; min-width: 0; min-height: 0; }
         
         .empty-state { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: #18181b; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #71717a;}
         .empty-state svg { width: 64px; height: 64px; opacity: 0.2; margin-bottom: 16px;}
@@ -115,7 +115,6 @@
         .btn-call { background: transparent; color: #4ade80; border: none; padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
         .btn-call:hover { background: rgba(74, 222, 128, 0.1); }
 
-        /* Зона звонка */
         .active-call-area { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; background: radial-gradient(circle at center, #27272a 0%, #18181b 100%); border-bottom: 1px solid #3f3f46; flex-shrink: 0;}
         .active-call-area.visible { display: flex; }
         .call-avatar { width: 90px; height: 90px; border-radius: 50%; border: 2px solid #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; background: #3f3f46; color: #fff; margin-bottom: 16px; transition: 0.3s; object-fit: cover; }
@@ -131,14 +130,12 @@
         .btn-mute:hover { background: #52525b; }
         .btn-mute.muted { background: #eab308; color: #18181b; }
 
-        /* Сообщения */
         .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word;}
         .msg.in { background: #27272a; align-self: flex-start; border-bottom-left-radius: 4px; }
         .msg.out { background: #4ade80; color: #18181b; align-self: flex-end; border-bottom-right-radius: 4px; }
         .msg.system { align-self: center; background: rgba(63, 63, 70, 0.5); color: #a1a1aa; font-size: 12px; padding: 6px 16px; border-radius: 16px; text-align: center; max-width: 90%; }
 
-        /* Ввод сообщения */
         .chat-input-area { padding: 12px 20px; background: #202024; border-top: 1px solid #3f3f46; display: flex; gap: 10px; flex-shrink: 0; align-items: center; }
         .chat-input-area input { flex: 1; background: #27272a; border: 1px solid #3f3f46; padding: 12px 14px; border-radius: 8px; color: #fff; font-size: 15px; outline: none; transition: 0.2s; min-width: 0; }
         .chat-input-area input:focus { border-color: #4ade80; }
@@ -192,11 +189,20 @@
         .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 14px; border-radius: 12px; font-weight: 600; width: 100%; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; flex-shrink: 0;}
         .btn-logout:hover { background: #ef4444; color: #fff; }
 
-        /* Блоки авторизации устройств */
+        /* Блоки авторизации / Устройства */
         .qr-box { background: #fff; padding: 10px; border-radius: 10px; margin-bottom: 16px; display: inline-block; }
         .code-display { font-size: 32px; font-weight: 700; letter-spacing: 5px; color: #4ade80; margin-bottom: 20px; }
         #qr-reader { width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 16px; display: none; }
         .scanner-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom:16px;}
+
+        /* Список устройств */
+        .device-item { padding: 16px; background: #27272a; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; gap: 16px; width: 100%; text-align: left; }
+        .device-icon { width: 44px; height: 44px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; color: #a1a1aa; flex-shrink: 0; }
+        .device-info { flex: 1; overflow: hidden; }
+        .device-name { color: #fff; font-weight: 600; font-size: 15px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .device-meta { color: #a1a1aa; font-size: 12px; line-height: 1.4; }
+        .btn-terminate { background: rgba(239,68,68,0.1); color: #ef4444; border: none; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; transition: 0.2s; flex-shrink: 0;}
+        .btn-terminate:hover { background: #ef4444; color: #fff; }
 
         /* Модалка звонка (Маленькая) */
         .alert-modal { background: #27272a; border: 1px solid #3f3f46; padding: 24px; border-radius: 20px; text-align: center; width: 90%; max-width: 320px; transform: scale(0.9); transition: 0.3s; }
@@ -210,13 +216,14 @@
 
         /* --- АДАПТИВНОСТЬ ДЛЯ ТЕЛЕФОНОВ --- */
         @media (max-width: 768px) {
-            .sidebar { width: 100%; position: absolute; height: 100%; top: 0; left: 0; background: #18181b; }
-            .sidebar.hidden-mobile { transform: translateX(-100%); }
+            .sidebar { width: 100%; display: flex; }
+            .sidebar.hidden-mobile { display: none !important; }
             
-            .main-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(100%); z-index: 20; }
-            .main-area.visible-mobile { transform: translateX(0); }
+            .main-area { width: 100%; display: none; }
+            .main-area.visible-mobile { display: flex !important; }
             
             .btn-back { display: block; }
+            .empty-state { display: none !important; }
             
             .panel { border-radius: 20px 20px 0 0; position: absolute; bottom: 0; max-width: 100%; width: 100%; transform: translateY(100%); }
             .panel-overlay.visible .panel { transform: translateY(0); }
@@ -396,7 +403,7 @@
                         </div>
                         <span style="color:#71717a;">></span>
                     </li>
-                    <li class="settings-item" onclick="alert('В разработке')">
+                    <li class="settings-item" onclick="openDevicesPanel()">
                         <div class="settings-icon-text">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                             Устройства
@@ -404,11 +411,6 @@
                         <span style="color:#71717a;">></span>
                     </li>
                 </ul>
-                
-                <button class="btn-logout" onclick="doLogout()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    Выйти
-                </button>
             </div>
         </div>
     </div>
@@ -430,6 +432,21 @@
                 <input type="text" id="edit-name" placeholder="Отображаемое имя">
                 <input type="text" id="edit-user" placeholder="Юз (логин)" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')">
                 <button class="btn-primary" onclick="saveProfileEdit()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === ПАНЕЛЬ "УСТРОЙСТВА" === -->
+    <div class="panel-overlay" id="devices-panel-overlay">
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Устройства</h2>
+                <button class="btn-close" onclick="closeDevicesPanel()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+            <div class="panel-content" style="padding: 0; background: #18181b; overflow-y: auto;" id="devices-list">
+                <!-- Список устройств будет тут -->
             </div>
         </div>
     </div>
@@ -456,7 +473,7 @@
                 <div id="auth-scanner-block" style="width: 100%;">
                     <div id="qr-reader-container" style="display:none; margin-bottom: 16px;">
                         <div id="qr-reader"></div>
-                        <button class="btn-secondary" style="margin-top: 10px;" onclick="stopQRScanner()">Отмена</button>
+                        <button class="btn-secondary" style="margin-top: 10px;" onclick="stopQRScanner()">Отмена сканирования</button>
                     </div>
                     
                     <div id="auth-scanner-ui">
@@ -492,12 +509,53 @@
     <audio id="incoming-ringtone" src="souncall.mp3" loop preload="auto"></audio>
 
     <script>
-        // === БАЗА И АВТОРИЗАЦИЯ ===
+        // === БАЗА, АВТОРИЗАЦИЯ И УСТРОЙСТВА ===
         let currentUser = JSON.parse(localStorage.getItem('fluger_user'));
         let selectedAvatar = null;
+        let myDeviceId = localStorage.getItem('fluger_device_id');
+        
+        // Генерация ID устройства, если нет
+        if (!myDeviceId) {
+            myDeviceId = Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('fluger_device_id', myDeviceId);
+        }
+
+        // Регистрация/обновление текущего устройства в списке
+        function updateCurrentDevice() {
+            if (!currentUser) return;
+            if (!currentUser.devices) currentUser.devices = [];
+            
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const devIndex = currentUser.devices.findIndex(d => d.id === myDeviceId);
+            
+            const devInfo = {
+                id: myDeviceId,
+                type: isMobile ? 'phone' : 'pc',
+                name: isMobile ? 'Смартфон' : 'Компьютер (Web)',
+                ip: '192.168.1.' + Math.floor(Math.random() * 255), // Симуляция
+                country: 'Украина', 
+                lastActive: new Date().toLocaleString()
+            };
+
+            if (devIndex >= 0) {
+                currentUser.devices[devIndex] = devInfo;
+            } else {
+                currentUser.devices.push(devInfo);
+            }
+            
+            saveUserToStorage();
+        }
+
+        function saveUserToStorage() {
+            localStorage.setItem('fluger_user', JSON.stringify(currentUser));
+            let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
+            allAccounts[currentUser.username] = currentUser;
+            localStorage.setItem('fluger_accounts', JSON.stringify(allAccounts));
+        }
 
         function checkAuth() {
             if (currentUser && currentUser.username) {
+                updateCurrentDevice();
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('app-screen').style.display = 'flex';
                 initApp();
@@ -542,11 +600,8 @@
             const pass = document.getElementById('reg-pass').value;
             let finalAvatar = skipAvatar || !selectedAvatar ? "" : selectedAvatar;
 
-            currentUser = { displayName: name, username: user, password: pass, avatar: finalAvatar };
-            localStorage.setItem('fluger_user', JSON.stringify(currentUser));
-            let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
-            allAccounts[user] = currentUser;
-            localStorage.setItem('fluger_accounts', JSON.stringify(allAccounts));
+            currentUser = { displayName: name, username: user, password: pass, avatar: finalAvatar, devices: [] };
+            saveUserToStorage();
             checkAuth();
         }
 
@@ -556,7 +611,7 @@
             let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
             if (allAccounts[user] && allAccounts[user].password === pass) {
                 currentUser = allAccounts[user];
-                localStorage.setItem('fluger_user', JSON.stringify(currentUser));
+                saveUserToStorage();
                 checkAuth();
             } else {
                 alert("Неверный юз или пароль!");
@@ -564,6 +619,10 @@
         }
 
         function doLogout() {
+            if (currentUser && currentUser.devices) {
+                currentUser.devices = currentUser.devices.filter(d => d.id !== myDeviceId);
+                saveUserToStorage();
+            }
             localStorage.removeItem('fluger_user');
             if(peer) peer.destroy();
             location.reload();
@@ -633,7 +692,56 @@
             }
         }
 
-        // === АВТОРИЗАЦИЯ УСТРОЙСТВА ===
+        // === ПАНЕЛЬ "УСТРОЙСТВА" ===
+        function openDevicesPanel() {
+            closeProfilePanel();
+            renderDevicesList();
+            document.getElementById('devices-panel-overlay').classList.add('visible');
+        }
+        
+        function closeDevicesPanel() {
+            document.getElementById('devices-panel-overlay').classList.remove('visible');
+        }
+
+        function renderDevicesList() {
+            const listEl = document.getElementById('devices-list');
+            listEl.innerHTML = '';
+            
+            if (!currentUser.devices) currentUser.devices = [];
+            
+            currentUser.devices.forEach(device => {
+                const isCurrent = device.id === myDeviceId;
+                const iconSvg = device.type === 'phone' 
+                    ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>`
+                    : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`;
+                
+                const terminateBtn = !isCurrent 
+                    ? `<button class="btn-terminate" onclick="terminateDevice('${device.id}')">Завершить сеанс</button>`
+                    : `<span style="color:#4ade80; font-size:12px; font-weight:600;">Текущее</span>`;
+
+                listEl.innerHTML += `
+                    <div class="device-item">
+                        <div class="device-icon">${iconSvg}</div>
+                        <div class="device-info">
+                            <div class="device-name">${device.name}</div>
+                            <div class="device-meta">${device.country} • ${device.ip}<br>Активен: ${device.lastActive}</div>
+                        </div>
+                        ${terminateBtn}
+                    </div>
+                `;
+            });
+        }
+
+        function terminateDevice(id) {
+            if(confirm("Точно завершить сеанс на этом устройстве?")) {
+                currentUser.devices = currentUser.devices.filter(d => d.id !== id);
+                saveUserToStorage();
+                renderDevicesList();
+            }
+        }
+
+
+        // === АВТОРИЗАЦИЯ ДРУГОГО УСТРОЙСТВА ===
         let authPeer = null;
         let isAuthLoggedIn = false;
         let html5QrCode = null;
@@ -653,7 +761,7 @@
             if(authPeer) { authPeer.destroy(); authPeer = null; }
 
             if (loggedIn) {
-                // Показываем код
+                // МЫ В АККАУНТЕ: Показываем код
                 title.innerText = "Войти на другом устройстве";
                 genBlock.style.display = "block";
                 scanBlock.style.display = "none";
@@ -676,7 +784,7 @@
                     });
                 });
             } else {
-                // Сканируем код
+                // МЫ НЕ В АККАУНТЕ: Показываем сканер/ввод
                 title.innerText = "Вход через устройство";
                 genBlock.style.display = "none";
                 scanBlock.style.display = "block";
@@ -703,11 +811,8 @@
             conn.on('data', data => {
                 if (data.type === 'AUTH_CREDS') {
                     currentUser = data.creds;
-                    localStorage.setItem('fluger_user', JSON.stringify(currentUser));
-                    let allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
-                    allAccs[currentUser.username] = currentUser;
-                    localStorage.setItem('fluger_accounts', JSON.stringify(allAccs));
-                    
+                    saveUserToStorage(); // Сохранит и добавит текущее устройство
+                    updateCurrentDevice();
                     statusTxt.innerText = "Успешный вход!";
                     statusTxt.style.color = "#4ade80";
                     setTimeout(() => { closeDeviceAuthPanel(); checkAuth(); }, 1500);
@@ -716,6 +821,7 @@
             conn.on('error', () => { 
                 statusTxt.innerText = "Ошибка подключения (неверный код)"; 
                 statusTxt.style.color = "#ef4444";
+                stopQRScanner();
             });
         }
 
@@ -738,7 +844,7 @@
                 },
                 (err) => {}
             ).catch(err => {
-                alert("Ошибка доступа к камере");
+                alert("Камера недоступна или заблокирована браузером");
                 stopQRScanner();
             });
         }
@@ -753,6 +859,7 @@
             document.getElementById('qr-reader-container').style.display = 'none';
             document.getElementById('auth-scanner-ui').style.display = 'block';
         }
+
 
         // === ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ (ЧАТЫ И ЗВОНКИ) ===
         let peer = null;
@@ -889,7 +996,6 @@
         function closeChatMobile() {
             document.getElementById('sidebar').classList.remove('hidden-mobile');
             document.getElementById('main-area').classList.remove('visible-mobile');
-            document.getElementById('empty-state').style.display = 'flex'; // Восстанавливаем пустое состояние
             activeChatId = null;
             renderFriends();
         }
@@ -905,7 +1011,7 @@
             document.getElementById('chat-avatar-top').innerHTML = renderAvatarHtml(profile.displayName, profile.avatar);
             document.getElementById('call-avatar').innerHTML = renderAvatarHtml(profile.displayName, profile.avatar);
             
-            document.getElementById('empty-state').style.display = 'none';
+            // На мобильных скрываем сайдбар, показываем чат
             document.getElementById('sidebar').classList.add('hidden-mobile');
             document.getElementById('main-area').classList.add('visible-mobile');
             
