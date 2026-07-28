@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Fluger</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <!-- Библиотека для сканирования QR-кодов -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -17,7 +16,7 @@
             background-color: #18181b;
             color: #e4e4e7;
             display: flex;
-            height: 100vh;
+            height: 100dvh; /* Используем dvh для правильного отображения на мобильных */
             overflow: hidden;
         }
 
@@ -25,11 +24,12 @@
         input {
             background: #27272a; border: 1px solid #3f3f46; padding: 14px;
             border-radius: 10px; color: #fff; font-size: 16px; outline: none; transition: 0.2s;
+            width: 100%;
         }
         input:focus { border-color: #4ade80; }
-        .btn-primary { background: #4ade80; color: #18181b; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .btn-primary { background: #4ade80; color: #18181b; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.2s; width: 100%;}
         .btn-primary:hover { background: #22c55e; }
-        .btn-secondary { background: transparent; color: #a1a1aa; border: 1px solid #3f3f46; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-secondary { background: transparent; color: #a1a1aa; border: 1px solid #3f3f46; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%;}
         .btn-secondary:hover { background: #27272a; color: #fff; }
 
         /* --- ЭКРАН АВТОРИЗАЦИИ --- */
@@ -38,105 +38,105 @@
             background: #18181b; display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 50;
             transition: opacity 0.3s;
+            padding: 20px;
         }
         .auth-card {
-            background: #202024; border: 1px solid #3f3f46; padding: 40px;
+            background: #202024; border: 1px solid #3f3f46; padding: 30px 24px;
             border-radius: 20px; width: 100%; max-width: 400px; text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .auth-logo { font-size: 36px; font-weight: 700; color: #4ade80; margin-bottom: 30px; letter-spacing: 1px; }
-        .auth-buttons, .auth-step { display: none; flex-direction: column; gap: 16px; }
+        .auth-logo { font-size: 32px; font-weight: 700; color: #4ade80; margin-bottom: 24px; letter-spacing: 1px; }
+        .auth-buttons, .auth-step { display: none; flex-direction: column; gap: 14px; }
         .auth-step.active, .auth-buttons.active { display: flex; }
-        .auth-card h3 { margin-bottom: 8px; font-size: 18px; color: #fff; }
-        .auth-card p { margin-bottom: 20px; font-size: 14px; color: #a1a1aa; }
+        .auth-card h3 { margin-bottom: 6px; font-size: 18px; color: #fff; }
+        .auth-card p { margin-bottom: 16px; font-size: 13px; color: #a1a1aa; line-height: 1.4;}
         
-        .avatar-options { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-        .avatar-preset { width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; object-fit: cover; }
+        .avatar-options { display: flex; justify-content: center; gap: 12px; margin-bottom: 16px; }
+        .avatar-preset { width: 50px; height: 50px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; object-fit: cover; }
         .avatar-preset.selected { border-color: #4ade80; }
         #avatar-upload { display: none; }
         .upload-btn { background: #3f3f46; padding: 10px; border-radius: 8px; font-size: 13px; cursor: pointer; color: #fff; margin-bottom: 10px;}
         .skip-btn { font-size: 13px; color: #71717a; text-decoration: underline; cursor: pointer; margin-top: 10px; }
-
-        .auth-link { color: #4ade80; font-size: 14px; cursor: pointer; margin-top: 15px; text-decoration: none; display: inline-block; }
-        .auth-link:hover { text-decoration: underline; }
+        .auth-link { color: #4ade80; font-size: 14px; cursor: pointer; margin-top: 10px; text-decoration: none; display: inline-block; padding: 8px;}
 
         /* --- ГЛАВНЫЙ ИНТЕРФЕЙС --- */
-        #app-screen { display: none; width: 100%; height: 100%; }
+        #app-screen { display: none; width: 100%; height: 100%; position: relative; }
         
-        /* ЛЕВАЯ ПАНЕЛЬ */
-        .sidebar { width: 340px; background: #202024; border-right: 1px solid #3f3f46; display: flex; flex-direction: column; z-index: 10; transition: 0.3s; }
+        /* ЛЕВАЯ ПАНЕЛЬ (Список) */
+        .sidebar { width: 340px; background: #202024; border-right: 1px solid #3f3f46; display: flex; flex-direction: column; z-index: 10; transition: 0.3s; flex-shrink: 0; }
         .sidebar-inner { padding: 20px; display: flex; flex-direction: column; height: 100%; }
 
         .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-        .main-status { font-size: 24px; font-weight: 700; color: #4ade80; letter-spacing: 0.5px; display: flex; align-items: center; }
-        .main-status.error { color: #ef4444; font-size: 20px; }
-        .main-status.connecting { color: #a1a1aa; font-size: 20px; }
+        .main-status { font-size: 22px; font-weight: 700; color: #4ade80; letter-spacing: 0.5px; display: flex; align-items: center; flex: 1; }
+        .main-status.error { color: #ef4444; font-size: 18px; }
+        .main-status.connecting { color: #a1a1aa; font-size: 18px; }
         .animated-dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
         @keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
 
-        .avatar-circle { width: 44px; height: 44px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #fff; object-fit: cover; cursor: pointer; transition: 0.2s; }
+        .avatar-circle { width: 44px; height: 44px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #fff; object-fit: cover; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
         .avatar-circle:hover { box-shadow: 0 0 0 2px #4ade80; }
 
         .search-box { display: flex; background: #27272a; border: 1px solid #3f3f46; border-radius: 10px; overflow: hidden; margin-bottom: 8px; transition: 0.3s; align-items: center; padding-right: 4px; }
         .search-box:focus-within { border-color: #4ade80; }
         .search-box input { flex: 1; background: transparent; border: none; padding: 12px 14px; color: #fff; font-size: 14px; outline: none; }
-        .btn-search { background: transparent; color: #a1a1aa; border: none; padding: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .btn-search { background: transparent; color: #a1a1aa; border: none; padding: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; }
         .btn-search:hover { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
-        #add-status { font-size: 12px; margin-bottom: 20px; min-height: 15px; color: #a1a1aa; text-align: center; }
+        #add-status { font-size: 12px; margin-bottom: 16px; min-height: 15px; color: #a1a1aa; text-align: center; }
 
-        .friend-list { flex: 1; overflow-y: auto; list-style: none; }
+        .friend-list { flex: 1; overflow-y: auto; list-style: none; margin: 0 -8px; padding: 0 8px; }
         .friend-list::-webkit-scrollbar { width: 4px; }
         .friend-list::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-        .friend-item { position: relative; background: #27272a; border: 1px solid #3f3f46; padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .friend-item { position: relative; background: #27272a; border: 1px solid #3f3f46; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
         .friend-item:hover { background: #303036; }
         .friend-item.active { border-color: #4ade80; background: #2e3648; }
-        .friend-avatar-small { width: 40px; height: 40px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: #fff; object-fit: cover; }
-        .friend-item-info { display: flex; flex-direction: column; flex: 1; }
-        .friend-item-name { font-weight: 600; font-size: 15px; }
+        .friend-avatar-small { width: 40px; height: 40px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: #fff; object-fit: cover; flex-shrink: 0; }
+        .friend-item-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+        .friend-item-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .unread-badge { background: #4ade80; color: #18181b; font-size: 11px; font-weight: 700; height: 20px; min-width: 20px; padding: 0 6px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .unread-badge { background: #4ade80; color: #18181b; font-size: 11px; font-weight: 700; height: 20px; min-width: 20px; padding: 0 6px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
-        /* ПРАВАЯ ПАНЕЛЬ */
-        .main-area { flex: 1; display: flex; flex-direction: column; background: #18181b; position: relative; overflow: hidden; }
+        /* ПРАВАЯ ПАНЕЛЬ (Чат/Звонок) */
+        .main-area { flex: 1; display: flex; flex-direction: column; background: #18181b; position: relative; overflow: hidden; min-width: 0; }
         .empty-state { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: #18181b; display: flex;}
 
-        .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: #202024; border-bottom: 1px solid #3f3f46; z-index: 10; }
-        .chat-header-info { display: flex; align-items: center; gap: 12px; }
-        .btn-back { display: none; background: transparent; border: none; color: #a1a1aa; cursor: pointer; padding: 8px; margin-left: -8px; }
-        .chat-peer-name { font-size: 18px; font-weight: 600; color: #fff; }
+        .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #202024; border-bottom: 1px solid #3f3f46; z-index: 10; flex-shrink: 0;}
+        .chat-header-info { display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden; }
+        .btn-back { display: none; background: transparent; border: none; color: #a1a1aa; cursor: pointer; padding: 8px; margin-left: -8px; flex-shrink: 0; }
+        .chat-peer-name { font-size: 16px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .btn-call { background: transparent; color: #4ade80; border: none; padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .btn-call { background: transparent; color: #4ade80; border: none; padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
         .btn-call:hover { background: rgba(74, 222, 128, 0.1); }
 
-        .active-call-area { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: radial-gradient(circle at center, #27272a 0%, #18181b 100%); border-bottom: 1px solid #3f3f46; }
+        .active-call-area { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; background: radial-gradient(circle at center, #27272a 0%, #18181b 100%); border-bottom: 1px solid #3f3f46; flex-shrink: 0;}
         .active-call-area.visible { display: flex; }
-        .call-avatar { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; background: #3f3f46; color: #fff; margin-bottom: 16px; transition: 0.3s; object-fit: cover; }
+        .call-avatar { width: 90px; height: 90px; border-radius: 50%; border: 2px solid #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; background: #3f3f46; color: #fff; margin-bottom: 16px; transition: 0.3s; object-fit: cover; }
         .call-avatar.pulsing { border-color: #4ade80; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); animation: pulse-green 1.5s infinite; }
         @keyframes pulse-green { to { box-shadow: 0 0 0 30px rgba(74, 222, 128, 0); } }
-        #call-status { color: #a1a1aa; margin-bottom: 24px; font-weight: 500; }
+        #call-status { color: #a1a1aa; margin-bottom: 24px; font-weight: 500; font-size: 14px;}
         
         .call-controls { display: flex; gap: 16px; }
-        .btn-hangup, .btn-mute { color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-hangup, .btn-mute { color: white; border: none; width: 46px; height: 46px; border-radius: 50%; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .btn-hangup { background: #ef4444; }
         .btn-hangup:hover { background: #dc2626; }
         .btn-mute { background: #3f3f46; }
         .btn-mute:hover { background: #52525b; }
         .btn-mute.muted { background: #eab308; color: #18181b; }
 
-        .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .msg { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word;}
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word;}
         .msg.in { background: #27272a; align-self: flex-start; border-bottom-left-radius: 4px; }
         .msg.out { background: #4ade80; color: #18181b; align-self: flex-end; border-bottom-right-radius: 4px; }
         .msg.system { align-self: center; background: rgba(63, 63, 70, 0.5); color: #a1a1aa; font-size: 12px; padding: 6px 16px; border-radius: 16px; text-align: center; max-width: 90%; }
 
-        .chat-input-area { padding: 16px 24px; background: #202024; border-top: 1px solid #3f3f46; display: flex; gap: 12px; }
-        .chat-input-area input { flex: 1; }
-        .btn-send { background: #4ade80; border: none; border-radius: 8px; width: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #18181b; }
+        .chat-input-area { padding: 12px 20px; background: #202024; border-top: 1px solid #3f3f46; display: flex; gap: 10px; flex-shrink: 0; align-items: center; }
+        .chat-input-area input { flex: 1; background: #27272a; border: 1px solid #3f3f46; padding: 12px 14px; border-radius: 8px; color: #fff; font-size: 15px; outline: none; transition: 0.2s; min-width: 0; }
+        .chat-input-area input:focus { border-color: #4ade80; }
+        .btn-send { background: #4ade80; border: none; border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #18181b; flex-shrink: 0; }
         .btn-send:hover { background: #22c55e; }
 
-        /* --- ВСПЛЫВАЮЩИЕ ПАНЕЛИ (Профиль, Устройства) --- */
+        /* --- ВСПЛЫВАЮЩИЕ ПАНЕЛИ (Модальные окна) --- */
         .panel-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
             background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
             z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
         }
@@ -144,74 +144,78 @@
         
         .panel {
             background: #202024; border: 1px solid #3f3f46; padding: 0;
-            border-radius: 20px; width: 100%; max-width: 400px;
+            border-radius: 20px; width: 95%; max-width: 400px;
             transform: scale(0.9); transition: 0.3s; overflow: hidden; display: flex; flex-direction: column;
-            max-height: 90vh;
+            max-height: 90dvh;
         }
         .panel-overlay.visible .panel { transform: scale(1); }
         
-        .panel-header { padding: 20px; border-bottom: 1px solid #3f3f46; display: flex; justify-content: space-between; align-items: center; position: relative; }
+        .panel-header { padding: 16px 20px; border-bottom: 1px solid #3f3f46; display: flex; justify-content: space-between; align-items: center; position: relative; }
         .panel-header h2 { font-size: 18px; color: #fff; margin: 0; }
-        .btn-close { background: none; border: none; color: #a1a1aa; cursor: pointer; }
+        .btn-close { background: none; border: none; color: #a1a1aa; cursor: pointer; padding: 4px; }
         .btn-dots { background: none; border: none; color: #a1a1aa; cursor: pointer; padding: 4px; }
         
-        /* Дропдаун 3 точки */
+        /* Дропдаун профиля */
         .dropdown-menu {
-            position: absolute; top: 50px; right: 20px; background: #27272a; border: 1px solid #3f3f46;
+            position: absolute; top: 56px; right: 20px; background: #27272a; border: 1px solid #3f3f46;
             border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            display: none; flex-direction: column; z-index: 10; overflow: hidden;
+            display: none; flex-direction: column; z-index: 10; overflow: hidden; min-width: 220px;
         }
         .dropdown-menu.active { display: flex; }
-        .dropdown-item { padding: 12px 16px; color: #fff; cursor: pointer; text-align: left; background: none; border: none; font-size: 14px; width: 100%; transition: 0.2s;}
-        .dropdown-item:hover { background: #3f3f46; }
+        .dropdown-item { padding: 12px 16px; color: #fff; cursor: pointer; text-align: left; background: none; border: none; font-size: 14px; width: 100%; transition: 0.2s; white-space: nowrap;}
+        .dropdown-item:hover { background: #3f3f46; color: #4ade80;}
 
         .panel-content { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         
-        .profile-avatar-large { width: 100px; height: 100px; border-radius: 50%; background: #3f3f46; font-size: 40px; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; object-fit: cover;}
-        .profile-name-large { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
-        .profile-user-large { font-size: 14px; color: #a1a1aa; margin-bottom: 24px; }
+        .profile-avatar-large { width: 90px; height: 90px; border-radius: 50%; background: #3f3f46; font-size: 36px; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; object-fit: cover;}
+        .profile-name-large { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 4px; text-align: center; }
+        .profile-user-large { font-size: 14px; color: #a1a1aa; margin-bottom: 24px; text-align: center; }
 
-        /* Список настроек */
+        /* Настройки (с иконками) */
         .settings-list { width: 100%; list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;}
-        .settings-item { background: #27272a; padding: 16px; border-radius: 12px; color: #e4e4e7; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between;}
-        .settings-item:hover { background: #3f3f46; }
-        .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 16px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s;}
+        .settings-item { background: #27272a; padding: 14px 16px; border-radius: 12px; color: #e4e4e7; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;}
+        .settings-item:hover { background: #3f3f46; color: #fff; }
+        .settings-icon-text { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+        .settings-icon-text svg { color: #a1a1aa; transition: 0.2s; }
+        .settings-item:hover .settings-icon-text svg { color: #4ade80; }
+        
+        .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px;}
         .btn-logout:hover { background: #ef4444; color: #fff; }
 
-        /* Авторизация устройства */
-        .qr-box { background: #fff; padding: 10px; border-radius: 10px; margin-bottom: 16px; }
+        /* Авторизация устройства (Улучшенная логика) */
+        .qr-box { background: #fff; padding: 10px; border-radius: 10px; margin-bottom: 16px; display: inline-block; }
         .code-display { font-size: 32px; font-weight: 700; letter-spacing: 5px; color: #4ade80; margin-bottom: 20px; }
-        .scanner-btn { position: absolute; top: 16px; right: 16px; background: rgba(74,222,128,0.1); color: #4ade80; border: none; padding: 8px; border-radius: 8px; cursor: pointer; display: none; } /* Показываем только на мобилках */
         #qr-reader { width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 16px; display: none; }
 
-        /* Модалка звонка */
-        .modal { background: #27272a; border: 1px solid #3f3f46; padding: 32px; border-radius: 20px; text-align: center; width: 340px; transform: scale(0.9); transition: 0.3s; }
+        /* Модалка входящего звонка */
+        .modal { background: #27272a; border: 1px solid #3f3f46; padding: 24px; border-radius: 20px; text-align: center; width: 90%; max-width: 320px; transform: scale(0.9); transition: 0.3s; }
         .overlay.visible .modal { transform: scale(1); }
-        .modal h2 { margin: 0 0 8px 0; font-size: 20px; }
-        .modal p { color: #a1a1aa; margin-bottom: 24px; }
-        .modal-btns { display: flex; gap: 12px; }
-        .modal-btns button { flex: 1; padding: 12px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; }
+        .modal h2 { margin: 0 0 8px 0; font-size: 18px; color: #fff; }
+        .modal p { color: #a1a1aa; margin-bottom: 20px; font-size: 14px; }
+        .modal-btns { display: flex; gap: 10px; }
+        .modal-btns button { flex: 1; padding: 10px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
         .btn-accept { background: #4ade80; color: #18181b; }
         .btn-reject { background: #ef4444; color: white; }
 
+        /* --- АДАПТИВНОСТЬ ДЛЯ ТЕЛЕФОНОВ --- */
         @media (max-width: 768px) {
             .sidebar { width: 100%; position: absolute; height: 100%; top: 0; left: 0; background: #18181b; }
             .sidebar.hidden-mobile { transform: translateX(-100%); }
-            .main-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(100%); transition: 0.3s; z-index: 20;}
+            
+            .main-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(100%); transition: 0.3s; z-index: 20; }
             .main-area.visible-mobile { transform: translateX(0); }
+            
             .btn-back { display: block; }
             .empty-state { display: none; }
             
-            .panel { border-radius: 20px 20px 0 0; position: absolute; bottom: 0; max-width: 100%; transform: translateY(100%); }
+            .panel { border-radius: 20px 20px 0 0; position: absolute; bottom: 0; max-width: 100%; width: 100%; transform: translateY(100%); }
             .panel-overlay.visible .panel { transform: translateY(0); }
-            
-            .scanner-btn { display: flex; align-items: center; justify-content: center; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ЭКРАН АВТОРИЗАЦИИ / РЕГИСТРАЦИИ -->
+    <!-- === ЭКРАН АВТОРИЗАЦИИ === -->
     <div id="auth-screen">
         <div class="auth-card">
             <div class="auth-logo">Fluger</div>
@@ -219,7 +223,7 @@
             <div id="auth-init" class="auth-buttons active">
                 <button class="btn-primary" onclick="showLogin()">Войти</button>
                 <button class="btn-secondary" onclick="showRegStep(1)">Зарегистрироваться</button>
-                <a class="auth-link" onclick="openDeviceAuthPanel(false)">Войти с другого устройства</a>
+                <a class="auth-link" onclick="openDeviceAuthPanel(false)">Войти с помощью другого устройства</a>
             </div>
 
             <div id="auth-login" class="auth-step">
@@ -265,9 +269,9 @@
         </div>
     </div>
 
-    <!-- ГЛАВНЫЙ ИНТЕРФЕЙС -->
+    <!-- === ГЛАВНЫЙ ИНТЕРФЕЙС === -->
     <div id="app-screen">
-        <!-- САЙДБАР -->
+        <!-- САЙДБАР (Слева) -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-inner">
                 
@@ -278,7 +282,7 @@
 
                 <div class="search-box">
                     <input type="text" id="friend-input" placeholder="Поиск" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')" onkeypress="if(event.key === 'Enter') addFriend()">
-                    <button class="btn-search" id="add-friend-btn" onclick="addFriend()">
+                    <button class="btn-search" id="add-friend-btn" onclick="addFriend()" title="Найти пользователя">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </button>
                 </div>
@@ -288,7 +292,7 @@
             </div>
         </div>
 
-        <!-- ОСНОВНАЯ ЗОНА (ЧАТ) -->
+        <!-- ОСНОВНАЯ ЗОНА (Справа) -->
         <div class="main-area" id="main-area">
             <div class="empty-state" id="empty-state"></div>
 
@@ -297,7 +301,7 @@
                     <button class="btn-back" id="btn-back">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
                     </button>
-                    <div class="chat-avatar friend-avatar-small" id="chat-avatar-top" style="margin-right:8px;"></div>
+                    <div class="chat-avatar friend-avatar-small" id="chat-avatar-top" style="margin-right:10px;"></div>
                     <div class="chat-peer-name" id="chat-title-name">Имя</div>
                 </div>
                 <button class="btn-call" id="btn-call" title="Позвонить">
@@ -311,11 +315,11 @@
                 
                 <div class="call-controls">
                     <button class="btn-mute" id="btn-mute" title="Вкл/Выкл микрофон">
-                        <svg id="icon-mic-on" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                        <svg id="icon-mic-off" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                        <svg id="icon-mic-on" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                        <svg id="icon-mic-off" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                     </button>
                     <button class="btn-hangup" id="btn-hangup" title="Завершить вызов">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15.46L16.28 14c-.38-.11-.79-.01-1.07.28l-2.73 2.73c-3.13-1.63-5.69-4.18-7.31-7.31l2.73-2.73c.29-.29.39-.7.28-1.07L6.73 3.19C6.42 2.27 5.27 2 4.4 2H3.5C2.67 2 2 2.67 2 3.5c0 10.22 8.28 18.5 18.5 18.5.83 0 1.5-.67 1.5-1.5v-.9c0-.87-.27-2.02-1.05-2.61L21 15.46z" transform="rotate(135 12 12)"/></svg>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15.46L16.28 14c-.38-.11-.79-.01-1.07.28l-2.73 2.73c-3.13-1.63-5.69-4.18-7.31-7.31l2.73-2.73c.29-.29.39-.7.28-1.07L6.73 3.19C6.42 2.27 5.27 2 4.4 2H3.5C2.67 2 2 2.67 2 3.5c0 10.22 8.28 18.5 18.5 18.5.83 0 1.5-.67 1.5-1.5v-.9c0-.87-.27-2.02-1.05-2.61L21 15.46z" transform="rotate(135 12 12)"/></svg>
                     </button>
                 </div>
             </div>
@@ -325,19 +329,19 @@
             <div class="chat-input-area">
                 <input type="text" id="chat-input" placeholder="Написать сообщение...">
                 <button class="btn-send" id="btn-send">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ПАНЕЛЬ ПРОФИЛЯ -->
+    <!-- === ПАНЕЛЬ ПРОФИЛЯ === -->
     <div class="panel-overlay" id="profile-panel-overlay">
         <div class="panel">
             <div class="panel-header">
                 <h2>Профиль</h2>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-dots" onclick="toggleDropdown()">
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-dots" onclick="toggleDropdown()" title="Меню">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
                     </button>
                     <button class="btn-close" onclick="closeProfilePanel()">
@@ -357,18 +361,45 @@
                 <div class="profile-user-large" id="panel-user">@юз</div>
                 
                 <ul class="settings-list">
-                    <li class="settings-item" onclick="alert('В разработке')">Настройки чатов <span>></span></li>
-                    <li class="settings-item" onclick="alert('В разработке')">Конфиденциальность <span>></span></li>
-                    <li class="settings-item" onclick="alert('В разработке')">Звук <span>></span></li>
-                    <li class="settings-item" onclick="alert('В разработке')">Устройства <span>></span></li>
+                    <li class="settings-item" onclick="alert('В разработке')">
+                        <div class="settings-icon-text">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            Настройки чатов
+                        </div>
+                        <span style="color:#71717a;">></span>
+                    </li>
+                    <li class="settings-item" onclick="alert('В разработке')">
+                        <div class="settings-icon-text">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            Конфиденциальность
+                        </div>
+                        <span style="color:#71717a;">></span>
+                    </li>
+                    <li class="settings-item" onclick="alert('В разработке')">
+                        <div class="settings-icon-text">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            Звук
+                        </div>
+                        <span style="color:#71717a;">></span>
+                    </li>
+                    <li class="settings-item" onclick="alert('В разработке')">
+                        <div class="settings-icon-text">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                            Устройства
+                        </div>
+                        <span style="color:#71717a;">></span>
+                    </li>
                 </ul>
                 
-                <button class="btn-logout" onclick="doLogout()">Выйти</button>
+                <button class="btn-logout" onclick="doLogout()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    Выйти
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- ПАНЕЛЬ РЕДАКТИРОВАНИЯ ПРОФИЛЯ -->
+    <!-- === ПАНЕЛЬ ИЗМЕНЕНИЯ ПРОФИЛЯ === -->
     <div class="panel-overlay" id="edit-profile-overlay">
         <div class="panel">
             <div class="panel-header">
@@ -382,42 +413,49 @@
                     Загрузить новую аватарку
                     <input type="file" style="display:none;" accept="image/*" onchange="handleEditAvatar(event)">
                 </label>
-                <input type="text" id="edit-name" placeholder="Отображаемое имя" style="width: 100%;">
-                <input type="text" id="edit-user" placeholder="Юз (логин)" style="width: 100%;" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')">
-                <button class="btn-primary" style="width: 100%;" onclick="saveProfileEdit()">Сохранить</button>
+                <input type="text" id="edit-name" placeholder="Отображаемое имя">
+                <input type="text" id="edit-user" placeholder="Юз (логин)" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')">
+                <button class="btn-primary" onclick="saveProfileEdit()">Сохранить</button>
             </div>
         </div>
     </div>
 
-    <!-- ПАНЕЛЬ ВХОДА НА ДРУГОМ УСТРОЙСТВЕ -->
+    <!-- === ПАНЕЛЬ АВТОРИЗАЦИИ ДРУГОГО УСТРОЙСТВА === -->
     <div class="panel-overlay" id="device-auth-overlay">
-        <div class="panel" style="position: relative;">
+        <div class="panel">
             <div class="panel-header">
-                <h2>Привязать устройство</h2>
+                <h2 id="device-auth-title">Привязать устройство</h2>
                 <button class="btn-close" onclick="closeDeviceAuthPanel()">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                 </button>
-                <button class="scanner-btn" id="btn-scan-qr" onclick="startQRScanner()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
-                </button>
             </div>
             <div class="panel-content" style="text-align: center;">
-                <div id="qr-reader"></div>
-                <div id="qr-display-area">
-                    <p style="color:#a1a1aa; font-size:14px; margin-bottom:10px;">Отсканируйте код другим устройством:</p>
-                    <div class="qr-box"><img id="device-qr-img" src="" width="150" height="150"></div>
+                
+                <!-- БЛОК ДЛЯ АВТОРИЗОВАННОГО ПОЛЬЗОВАТЕЛЯ (ГЕНЕРАТОР КОДА) -->
+                <div id="auth-generator-block" style="width: 100%;">
+                    <p style="color:#a1a1aa; font-size:14px; margin-bottom:16px;">Отсканируйте код другим устройством или введите цифры:</p>
+                    <div class="qr-box"><img id="device-qr-img" src="" width="160" height="160"></div>
                     <div class="code-display" id="device-code-txt">00000</div>
                 </div>
                 
-                <p style="color:#a1a1aa; font-size:14px; margin-bottom:10px;">Или введите код с другого устройства:</p>
-                <input type="text" id="device-auth-input" placeholder="Код (5 цифр)" maxlength="5" style="text-align: center; font-size: 20px; letter-spacing: 5px; width: 100%; margin-bottom:10px;">
-                <button class="btn-primary" style="width: 100%;" onclick="connectDeviceAuth()">Подключить</button>
-                <div id="device-auth-status" style="margin-top: 10px; font-size: 14px; color: #a1a1aa;"></div>
+                <!-- БЛОК ДЛЯ НЕАВТОРИЗОВАННОГО ПОЛЬЗОВАТЕЛЯ (СКАНЕР/ВВОД КОДА) -->
+                <div id="auth-scanner-block" style="width: 100%;">
+                    <div id="qr-reader"></div>
+                    <button class="btn-secondary" style="margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="startQRScanner()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+                        Включить сканер QR
+                    </button>
+                    <p style="color:#a1a1aa; font-size:14px; margin-bottom:10px;">Или введите код, показанный на вашем устройстве:</p>
+                    <input type="text" id="device-auth-input" placeholder="5 цифр" maxlength="5" style="text-align: center; font-size: 22px; letter-spacing: 6px; margin-bottom:16px;">
+                    <button class="btn-primary" onclick="connectDeviceAuth()">Подключить</button>
+                </div>
+
+                <div id="device-auth-status" style="margin-top: 16px; font-size: 14px; color: #a1a1aa; min-height: 20px;"></div>
             </div>
         </div>
     </div>
 
-    <!-- МОДАЛКА ЗВОНКОВ/ЗАПРОСОВ -->
+    <!-- === МОДАЛКА ЗВОНКОВ/ЗАПРОСОВ === -->
     <div class="overlay" id="modal-overlay">
         <div class="modal">
             <h2 id="modal-title">...</h2>
@@ -520,7 +558,6 @@
             return name ? name.charAt(0).toUpperCase() : '?';
         }
 
-
         // === ПАНЕЛЬ ПРОФИЛЯ ===
         function openProfilePanel() {
             document.getElementById('panel-avatar').innerHTML = renderAvatarHtml(currentUser.displayName, currentUser.avatar);
@@ -578,9 +615,8 @@
             }
         }
 
-        // === АВТОРИЗАЦИЯ УСТРОЙСТВ (PeerJS Auth Link) ===
+        // === РАЗДЕЛЕННАЯ ЛОГИКА АВТОРИЗАЦИИ УСТРОЙСТВА ===
         let authPeer = null;
-        let generatedAuthCode = "";
         let isAuthLoggedIn = false;
         let html5QrCode = null;
 
@@ -588,87 +624,102 @@
             isAuthLoggedIn = loggedIn;
             if(!loggedIn) resetAuth();
             
-            // Генерация кода 5 цифр
-            generatedAuthCode = Math.floor(10000 + Math.random() * 90000).toString();
-            document.getElementById('device-code-txt').innerText = generatedAuthCode;
-            document.getElementById('device-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${generatedAuthCode}&bgcolor=ffffff`;
-            document.getElementById('device-auth-status').innerText = "Ожидание подключения...";
+            const overlay = document.getElementById('device-auth-overlay');
+            const title = document.getElementById('device-auth-title');
+            const genBlock = document.getElementById('auth-generator-block');
+            const scanBlock = document.getElementById('auth-scanner-block');
+            const statusTxt = document.getElementById('device-auth-status');
             
-            if(authPeer) authPeer.destroy();
-            authPeer = new Peer('fluger-auth-' + generatedAuthCode, { config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+            overlay.classList.add('visible');
+            statusTxt.innerText = "";
             
-            authPeer.on('connection', conn => {
-                conn.on('data', data => {
-                    if (data.type === 'AUTH_SYNC') {
-                        if (isAuthLoggedIn) {
-                            // Я авторизован, отправляю данные
-                            conn.send({ type: 'AUTH_CREDS', creds: currentUser });
-                            document.getElementById('device-auth-status').innerText = "Данные успешно отправлены!";
-                            setTimeout(closeDeviceAuthPanel, 2000);
-                        } else {
-                            // Я НЕ авторизован, принимаю данные
-                            if (data.creds) {
-                                currentUser = data.creds;
-                                localStorage.setItem('fluger_user', JSON.stringify(currentUser));
-                                let allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
-                                allAccs[currentUser.username] = currentUser;
-                                localStorage.setItem('fluger_accounts', JSON.stringify(allAccs));
-                                
-                                document.getElementById('device-auth-status').innerText = "Успешный вход!";
-                                setTimeout(() => { closeDeviceAuthPanel(); checkAuth(); }, 1500);
-                            }
-                        }
-                    } else if (data.type === 'AUTH_CREDS' && !isAuthLoggedIn) {
-                        currentUser = data.creds;
-                        localStorage.setItem('fluger_user', JSON.stringify(currentUser));
-                        let allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
-                        allAccs[currentUser.username] = currentUser;
-                        localStorage.setItem('fluger_accounts', JSON.stringify(allAccs));
-                        
-                        document.getElementById('device-auth-status').innerText = "Успешный вход!";
-                        setTimeout(() => { closeDeviceAuthPanel(); checkAuth(); }, 1500);
-                    }
-                });
-                
-                // Если я залогинен и кто-то подключился, инициируем отправку
-                if (isAuthLoggedIn) {
-                    setTimeout(()=> conn.send({ type: 'AUTH_SYNC', creds: currentUser }), 500);
-                }
-            });
+            if(authPeer) { authPeer.destroy(); authPeer = null; }
 
-            document.getElementById('device-auth-overlay').classList.add('visible');
+            if (loggedIn) {
+                // МЫ В АККАУНТЕ: Показываем код
+                title.innerText = "Привязать устройство";
+                genBlock.style.display = "block";
+                scanBlock.style.display = "none";
+                
+                const generatedCode = Math.floor(10000 + Math.random() * 90000).toString();
+                document.getElementById('device-code-txt').innerText = generatedCode;
+                document.getElementById('device-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${generatedCode}&bgcolor=ffffff`;
+                
+                statusTxt.innerText = "Ожидание сканирования...";
+                statusTxt.style.color = "#a1a1aa";
+                
+                authPeer = new Peer('fluger-auth-' + generatedCode, { config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+                
+                authPeer.on('connection', conn => {
+                    conn.on('data', data => {
+                        if (data.type === 'AUTH_REQ') {
+                            conn.send({ type: 'AUTH_CREDS', creds: currentUser });
+                            statusTxt.innerText = "Данные успешно отправлены!";
+                            statusTxt.style.color = "#4ade80";
+                            setTimeout(closeDeviceAuthPanel, 2000);
+                        }
+                    });
+                });
+            } else {
+                // МЫ НЕ В АККАУНТЕ: Показываем сканер/ввод
+                title.innerText = "Вход через устройство";
+                genBlock.style.display = "none";
+                scanBlock.style.display = "block";
+                document.getElementById('device-auth-input').value = "";
+                
+                authPeer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
+            }
+            
             if(loggedIn) closeProfilePanel();
         }
 
+        // Подключение со стороны НЕАВТОРИЗОВАННОГО устройства
         function connectDeviceAuth(codeOverride = null) {
             const code = codeOverride || document.getElementById('device-auth-input').value.trim();
             if (code.length !== 5) return alert("Введите 5 цифр!");
             
-            document.getElementById('device-auth-status').innerText = "Подключение...";
+            const statusTxt = document.getElementById('device-auth-status');
+            statusTxt.innerText = "Подключение...";
+            statusTxt.style.color = "#a1a1aa";
+            
             const conn = authPeer.connect('fluger-auth-' + code, { reliable: true });
             
             conn.on('open', () => {
-                if (isAuthLoggedIn) {
-                    conn.send({ type: 'AUTH_CREDS', creds: currentUser });
-                    document.getElementById('device-auth-status').innerText = "Данные успешно отправлены!";
-                    setTimeout(closeDeviceAuthPanel, 2000);
-                } else {
-                    conn.send({ type: 'AUTH_SYNC' });
-                    document.getElementById('device-auth-status').innerText = "Запрос отправлен, ожидание...";
+                conn.send({ type: 'AUTH_REQ' });
+                statusTxt.innerText = "Запрос отправлен, ожидание...";
+            });
+            
+            conn.on('data', data => {
+                if (data.type === 'AUTH_CREDS') {
+                    currentUser = data.creds;
+                    localStorage.setItem('fluger_user', JSON.stringify(currentUser));
+                    let allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
+                    allAccs[currentUser.username] = currentUser;
+                    localStorage.setItem('fluger_accounts', JSON.stringify(allAccs));
+                    
+                    statusTxt.innerText = "Успешный вход!";
+                    statusTxt.style.color = "#4ade80";
+                    setTimeout(() => { closeDeviceAuthPanel(); checkAuth(); }, 1500);
                 }
             });
-            conn.on('error', () => { document.getElementById('device-auth-status').innerText = "Ошибка подключения (неверный код)"; });
+
+            conn.on('error', () => { 
+                statusTxt.innerText = "Ошибка подключения (неверный код)"; 
+                statusTxt.style.color = "#ef4444";
+            });
         }
 
         function closeDeviceAuthPanel() {
             document.getElementById('device-auth-overlay').classList.remove('visible');
-            if(authPeer) authPeer.destroy();
-            if(html5QrCode) { html5QrCode.stop().catch(e=>{}); document.getElementById('qr-reader').style.display = 'none'; document.getElementById('qr-display-area').style.display = 'block'; }
+            if(authPeer) { authPeer.destroy(); authPeer = null;}
+            if(html5QrCode) { 
+                html5QrCode.stop().catch(e=>{}); 
+                document.getElementById('qr-reader').style.display = 'none'; 
+            }
         }
 
         // Сканер QR
         function startQRScanner() {
-            document.getElementById('qr-display-area').style.display = 'none';
             document.getElementById('qr-reader').style.display = 'block';
             
             html5QrCode = new Html5Qrcode("qr-reader");
@@ -676,7 +727,6 @@
                 (decodedText) => {
                     html5QrCode.stop();
                     document.getElementById('qr-reader').style.display = 'none';
-                    document.getElementById('qr-display-area').style.display = 'block';
                     document.getElementById('device-auth-input').value = decodedText;
                     connectDeviceAuth(decodedText);
                 },
@@ -684,12 +734,10 @@
             ).catch(err => {
                 alert("Ошибка доступа к камере");
                 document.getElementById('qr-reader').style.display = 'none';
-                document.getElementById('qr-display-area').style.display = 'block';
             });
         }
 
-
-        // === ОСНОВНАЯ ЛОГИКА PEERJS ===
+        // === ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ (ЧАТЫ И ЗВОНКИ) ===
         let peer = null;
         let localStream = null;
         let currentCall = null;
@@ -709,7 +757,7 @@
             } else if (state === 'connected') { 
                 txt.innerHTML = 'Fluger'; 
             } else if (state === 'error') { 
-                txt.innerHTML = 'Не удалось подключиться'; 
+                txt.innerHTML = 'Ошибка сети'; 
                 txt.classList.add('error');
             }
         }
@@ -1027,4 +1075,3 @@
     </script>
 </body>
 </html>
-
