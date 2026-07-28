@@ -3,163 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Аудиозвонок (PeerJS)</title>
+    <title>Мессенджер и Звонки (PeerJS)</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #1a1a2e;
             color: #fff;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ЛЕВАЯ ПАНЕЛЬ (Сайдбар) */
+        .sidebar {
+            width: 320px;
+            background: #16213e;
+            border-right: 2px solid #0f3460;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            z-index: 10;
+        }
+        
+        .my-profile {
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #0f3460;
+            margin-bottom: 15px;
+        }
+        .my-profile h3 { margin: 0 0 10px 0; font-size: 16px; color: #aaa; }
+        .code-box {
+            background: #0f3460;
+            padding: 10px;
+            font-size: 22px;
+            letter-spacing: 3px;
+            font-weight: bold;
+            border-radius: 8px;
+            color: #43e97b;
+            user-select: text;
+        }
+
+        .add-friend {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .add-friend input {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            border: 2px solid #e94560;
+            border-radius: 5px;
+            background: #1a1a2e;
+            color: #fff;
+            outline: none;
+            width: 100%;
+        }
+        .add-friend input:focus { border-color: #43e97b; }
+        
+        .btn-small {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-small:hover { background: #d83a54; }
+
+        .friend-list {
+            flex: 1;
+            overflow-y: auto;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .friend-item {
+            background: #0f3460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .friend-item:hover { background: #1a4a8a; }
+        .friend-item span { font-weight: bold; letter-spacing: 1px; }
+        .friend-item svg { fill: #43e97b; width: 24px; height: 24px; }
+
+        /* ПРАВАЯ ПАНЕЛЬ (Активный звонок) */
+        .main-area {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            margin: 0;
+            position: relative;
         }
-        .container {
-            background: #16213e;
-            padding: 30px 20px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-            width: 100%;
-            max-width: 400px;
-        }
-        
+
         .avatar-container {
-            width: 120px;
-            height: 120px;
+            width: 150px;
+            height: 150px;
             background: #0f3460;
             border-radius: 50%;
-            margin: 0 auto 20px auto;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 0 0 15px rgba(233, 69, 96, 0.2);
             transition: 0.3s;
+            margin-bottom: 20px;
         }
         .avatar-container.active {
-            box-shadow: 0 0 25px rgba(233, 69, 96, 0.8);
-            animation: pulse 1.5s infinite alternate;
+            box-shadow: 0 0 30px rgba(67, 233, 123, 0.8);
+            animation: pulse-green 1.5s infinite alternate;
         }
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 15px rgba(233, 69, 96, 0.4); }
-            100% { transform: scale(1.05); box-shadow: 0 0 30px rgba(233, 69, 96, 1); }
+        @keyframes pulse-green {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(67, 233, 123, 0.4); }
+            100% { transform: scale(1.05); box-shadow: 0 0 40px rgba(67, 233, 123, 1); }
         }
-        .avatar-container svg {
-            width: 60px;
-            height: 60px;
-            fill: #e94560;
-        }
+        .avatar-container svg { width: 80px; height: 80px; fill: #aaa; transition: 0.3s; }
+        .avatar-container.active svg { fill: #43e97b; }
 
-        .code-box {
-            background: #0f3460;
-            padding: 15px;
-            font-size: 26px;
-            letter-spacing: 5px;
-            font-weight: bold;
-            border-radius: 8px;
-            margin: 15px 0;
-            user-select: text;
-            color: #43e97b;
-        }
-        input {
-            width: 80%;
-            padding: 12px;
-            font-size: 18px;
-            text-align: center;
-            text-transform: uppercase;
-            border: 2px solid #e94560;
-            border-radius: 8px;
-            background: #1a1a2e;
-            color: #fff;
-            margin-bottom: 15px;
-            outline: none;
-        }
-        input:focus {
-            border-color: #43e97b;
-        }
-        
-        .btn-group {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-        }
-        button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            border: none;
-            padding: 15px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: 0.3s;
-            width: 85%;
-        }
-        .btn-call {
-            background: #43e97b;
-            color: #1a1a2e;
-        }
-        .btn-call:hover {
-            background: #38c869;
-        }
+        #call-status { font-size: 18px; color: #aaa; margin-bottom: 30px; font-weight: bold; }
+        #active-peer { font-size: 24px; color: #fff; letter-spacing: 2px; margin-bottom: 10px; display: none; }
+
         .btn-hangup {
             background: #e94560;
             color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
             display: none;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
         }
-        .btn-hangup:hover {
-            background: #d83a54;
-        }
-        button svg {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-        }
+        .btn-hangup:hover { background: #d83a54; }
+        .btn-hangup svg { width: 24px; height: 24px; fill: currentColor; }
 
-        #status {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #aaa;
+        /* ВСПЛЫВАЮЩИЕ ОКНА (Модалки) */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
         }
+        .overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal {
+            background: #16213e;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            width: 350px;
+        }
+        .modal h2 { margin-top: 0; color: #fff; }
+        .modal p { color: #aaa; font-size: 16px; margin-bottom: 25px; }
+        .modal-btns { display: flex; gap: 15px; justify-content: center; }
+        .modal-btns button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-accept { background: #43e97b; color: #1a1a2e; }
+        .btn-reject { background: #e94560; color: #fff; }
+
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <!-- ЛЕВАЯ ПАНЕЛЬ -->
+    <div class="sidebar">
+        <div class="my-profile">
+            <h3>ТВОЙ КОД (ДЛЯ ДРУЗЕЙ)</h3>
+            <div class="code-box" id="my-code">...</div>
+        </div>
+
+        <div class="add-friend">
+            <input type="text" id="friend-input" placeholder="КОД ДРУГА" maxlength="6">
+            <button class="btn-small" id="add-friend-btn">Добавить</button>
+        </div>
+
+        <ul class="friend-list" id="friend-list">
+            <!-- Список друзей появится здесь -->
+        </ul>
+    </div>
+
+    <!-- ПРАВАЯ ПАНЕЛЬ -->
+    <div class="main-area">
+        <div id="active-peer">...</div>
+        
         <div class="avatar-container" id="avatar">
             <svg viewBox="0 0 24 24">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
             </svg>
         </div>
 
-        <h2>Твой код:</h2>
-        <div class="code-box" id="my-code">...</div>
-        
-        <input type="text" id="partner-code" placeholder="КОД ДРУГА" maxlength="6">
-        
-        <div class="btn-group">
-            <button id="connect-btn" class="btn-call">
-                <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-                Позвонить
-            </button>
-            <button id="hangup-btn" class="btn-hangup">
-                <svg viewBox="0 0 24 24"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.52-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
-                Сбросить
-            </button>
-        </div>
+        <div id="call-status">Микрофон загружается...</div>
 
-        <div id="status">Инициализация микрофона...</div>
+        <button id="hangup-btn" class="btn-hangup">
+            <svg viewBox="0 0 24 24"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.52-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/></svg>
+            Завершить звонок
+        </button>
+    </div>
+
+    <!-- ОКНО ПОДТВЕРЖДЕНИЯ (Модалка) -->
+    <div class="overlay" id="modal-overlay">
+        <div class="modal">
+            <h2 id="modal-title">Входящий звонок</h2>
+            <p id="modal-desc">Абонент 123456 звонит вам</p>
+            <div class="modal-btns">
+                <button class="btn-accept" id="modal-accept">Принять</button>
+                <button class="btn-reject" id="modal-reject">Отклонить</button>
+            </div>
+        </div>
     </div>
 
     <audio id="remote-audio" autoplay></audio>
 
     <script>
+        // --- 1. ГЕНЕРАЦИЯ ID И ИНИЦИАЛИЗАЦИЯ ---
         function generateUniqueId() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let id = '';
@@ -169,155 +256,236 @@
             return id;
         }
 
-        const myCode = generateUniqueId();
+        // Если код уже был создан ранее, берем его из памяти (чтобы не менялся при F5)
+        let myCode = localStorage.getItem('my_peer_code');
+        if (!myCode) {
+            myCode = generateUniqueId();
+            localStorage.setItem('my_peer_code', myCode);
+        }
         document.getElementById('my-code').innerText = myCode;
-        
-        const statusText = document.getElementById('status');
-        const connectBtn = document.getElementById('connect-btn');
-        const hangupBtn = document.getElementById('hangup-btn');
-        const partnerInput = document.getElementById('partner-code');
-        const avatar = document.getElementById('avatar');
-        const remoteAudio = document.getElementById('remote-audio');
 
-        // Добавлены бесплатные STUN серверы Google для пробития Wi-Fi роутеров
         const peer = new Peer(myCode, {
             config: {
                 'iceServers': [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' },
-                    { urls: 'stun:stun4.l.google.com:19302' }
+                    { urls: 'stun:stun1.l.google.com:19302' }
                 ]
             }
         });
-        
+
+        // --- 2. ПЕРЕМЕННЫЕ СОСТОЯНИЯ И ЭЛЕМЕНТЫ ---
         let localStream = null;
         let currentCall = null;
+        let friends = JSON.parse(localStorage.getItem('my_friends') || '[]');
 
-        // Запрашиваем доступ к микрофону
+        const statusText = document.getElementById('call-status');
+        const activePeerText = document.getElementById('active-peer');
+        const hangupBtn = document.getElementById('hangup-btn');
+        const avatar = document.getElementById('avatar');
+        const remoteAudio = document.getElementById('remote-audio');
+        const friendListEl = document.getElementById('friend-list');
+        
+        // Модальное окно
+        const overlay = document.getElementById('modal-overlay');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDesc = document.getElementById('modal-desc');
+        const btnAccept = document.getElementById('modal-accept');
+        const btnReject = document.getElementById('modal-reject');
+        
+        let modalAcceptCallback = null;
+        let modalRejectCallback = null;
+
+        // Запрашиваем микрофон
         navigator.mediaDevices.getUserMedia({ video: false, audio: true })
             .then(stream => {
                 localStream = stream;
-                statusText.innerText = "Микрофон готов. Можно звонить!";
-                statusText.style.color = "#43e97b";
+                statusText.innerText = "Микрофон готов. Выберите друга для звонка.";
             })
             .catch(err => {
-                console.error('Ошибка доступа к микрофону:', err);
-                statusText.innerText = "Ошибка: Разрешите доступ к микрофону в браузере!";
+                console.error(err);
+                statusText.innerText = "Ошибка: Нет доступа к микрофону!";
                 statusText.style.color = "#e94560";
             });
 
-        function setCallState(isCalling) {
-            if (isCalling) {
-                connectBtn.style.display = 'none';
-                hangupBtn.style.display = 'flex';
-                partnerInput.disabled = true;
-                avatar.classList.add('active');
-            } else {
-                connectBtn.style.display = 'flex';
-                hangupBtn.style.display = 'none';
-                partnerInput.disabled = false;
-                avatar.classList.remove('active');
-                remoteAudio.srcObject = null;
-                currentCall = null;
+        // --- 3. ФУНКЦИИ ИНТЕРФЕЙСА ---
+        function renderFriends() {
+            friendListEl.innerHTML = '';
+            friends.forEach(friendId => {
+                const li = document.createElement('li');
+                li.className = 'friend-item';
+                li.innerHTML = `
+                    <span>${friendId}</span>
+                    <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                `;
+                // По клику на друга - звоним ему
+                li.onclick = () => initiateCall(friendId);
+                friendListEl.appendChild(li);
+            });
+        }
+        renderFriends();
+
+        function addFriendToList(id) {
+            if (!friends.includes(id)) {
+                friends.push(id);
+                localStorage.setItem('my_friends', JSON.stringify(friends));
+                renderFriends();
             }
         }
 
-        // Обработка ВХОДЯЩЕГО звонка
-        peer.on('call', call => {
-            if (!localStream) {
-                statusText.innerText = "Звонок сброшен: нет доступа к микрофону.";
-                call.close();
-                return;
-            }
+        function showModal(title, desc, onAccept, onReject) {
+            modalTitle.innerText = title;
+            modalDesc.innerText = desc;
+            modalAcceptCallback = onAccept;
+            modalRejectCallback = onReject;
+            overlay.classList.add('visible');
+        }
 
-            statusText.innerText = "Входящий звонок... Соединяем!";
-            statusText.style.color = "#fff";
-            currentCall = call;
-            
-            call.answer(localStream);
-            
-            call.on('stream', remoteStream => {
-                remoteAudio.srcObject = remoteStream;
-                statusText.innerText = "Разговор начат!";
-                statusText.style.color = "#43e97b";
-                setCallState(true);
-            });
+        function hideModal() {
+            overlay.classList.remove('visible');
+            modalAcceptCallback = null;
+            modalRejectCallback = null;
+        }
 
-            call.on('close', () => {
-                statusText.innerText = "Собеседник завершил вызов.";
+        btnAccept.onclick = () => { if (modalAcceptCallback) modalAcceptCallback(); hideModal(); };
+        btnReject.onclick = () => { if (modalRejectCallback) modalRejectCallback(); hideModal(); };
+
+        function setCallState(isActive, peerId = "") {
+            if (isActive) {
+                activePeerText.innerText = `ЗВОНОК С: ${peerId}`;
+                activePeerText.style.display = 'block';
+                hangupBtn.style.display = 'flex';
+                avatar.classList.add('active');
+            } else {
+                activePeerText.style.display = 'none';
+                hangupBtn.style.display = 'none';
+                avatar.classList.remove('active');
+                remoteAudio.srcObject = null;
+                currentCall = null;
+                statusText.innerText = "Выберите друга для звонка.";
                 statusText.style.color = "#aaa";
-                setCallState(false);
+            }
+        }
+
+        // --- 4. ОТПРАВКА ДАННЫХ И ДРУЖБА ---
+        document.getElementById('add-friend-btn').onclick = () => {
+            const targetId = document.getElementById('friend-input').value.trim().toUpperCase();
+            if (targetId.length !== 6) return alert("Код должен быть 6 символов!");
+            if (targetId === myCode) return alert("Нельзя добавить самого себя!");
+            if (friends.includes(targetId)) return alert("Этот человек уже в друзьях!");
+
+            // Соединяемся для отправки запроса
+            const conn = peer.connect(targetId);
+            conn.on('open', () => {
+                conn.send({ type: 'FRIEND_REQUEST', from: myCode });
+                alert("Запрос отправлен пользователю " + targetId);
+                document.getElementById('friend-input').value = '';
+            });
+            conn.on('error', () => alert("Не удалось отправить запрос. Возможно, пользователь оффлайн."));
+        };
+
+        // Обработка входящих системных сообщений (данных)
+        peer.on('connection', conn => {
+            conn.on('data', data => {
+                if (data.type === 'FRIEND_REQUEST') {
+                    showModal("Запрос в друзья", `Пользователь ${data.from} хочет добавить вас в друзья.`, 
+                        () => { // Принял
+                            addFriendToList(data.from);
+                            // Отправляем ответ
+                            const reply = peer.connect(data.from);
+                            reply.on('open', () => reply.send({ type: 'FRIEND_ACCEPT', from: myCode }));
+                        }, 
+                        () => { /* Отклонил (ничего не делаем) */ }
+                    );
+                } 
+                else if (data.type === 'FRIEND_ACCEPT') {
+                    alert(`Пользователь ${data.from} принял вашу заявку в друзья!`);
+                    addFriendToList(data.from);
+                }
+                else if (data.type === 'CALL_REJECTED') {
+                    statusText.innerText = "Собеседник отклонил вызов.";
+                    statusText.style.color = "#e94560";
+                    setCallState(false);
+                }
             });
         });
 
-        // ИСХОДЯЩИЙ звонок
-        connectBtn.addEventListener('click', () => {
-            if (!localStream) {
-                alert("Подождите, микрофон еще не подключен или вы запретили к нему доступ!");
-                return;
-            }
-
-            const partnerCode = partnerInput.value.trim().toUpperCase();
-            
-            if (partnerCode.length !== 6) {
-                alert("Код должен состоять из 6 символов!");
-                return;
-            }
-            if (partnerCode === myCode) {
-                alert("Нельзя позвонить самому себе!");
-                return;
-            }
-
-            statusText.innerText = `Звоним абоненту ${partnerCode}...`;
-            statusText.style.color = "#fff";
-            
-            const call = peer.call(partnerCode, localStream);
-            currentCall = call;
-            
+        // --- 5. ЛОГИКА ЗВОНКОВ ---
+        function setupCallEvents(call) {
             call.on('stream', remoteStream => {
                 remoteAudio.srcObject = remoteStream;
-                statusText.innerText = "Разговор начат!";
+                statusText.innerText = "Разговор идет...";
                 statusText.style.color = "#43e97b";
-                setCallState(true);
+                setCallState(true, call.peer);
             });
 
             call.on('close', () => {
                 statusText.innerText = "Вызов завершен.";
-                statusText.style.color = "#aaa";
                 setCallState(false);
             });
 
             call.on('error', err => {
-                statusText.innerText = "Собеседник не найден или отклонил звонок.";
-                statusText.style.color = "#e94560";
-                setCallState(false);
                 console.error(err);
+                setCallState(false);
             });
+        }
+
+        // ИСХОДЯЩИЙ ЗВОНОК
+        function initiateCall(targetId) {
+            if (!localStream) return alert("Микрофон не подключен!");
+            if (currentCall) return alert("Вы уже находитесь в звонке!");
+
+            statusText.innerText = `Звоним ${targetId}... Гудки...`;
+            statusText.style.color = "#fff";
+            setCallState(true, targetId); // Предварительно включаем интерфейс звонка
+            
+            const call = peer.call(targetId, localStream);
+            currentCall = call;
+            setupCallEvents(call);
+        }
+
+        // ВХОДЯЩИЙ ЗВОНОК
+        peer.on('call', call => {
+            if (currentCall) {
+                // Если мы уже разговариваем, отклоняем вторую линию (занято)
+                call.close();
+                return;
+            }
+
+            // Показываем окно принятия звонка
+            showModal("Входящий звонок", `Звонит абонент: ${call.peer}`, 
+                () => { // Принять
+                    currentCall = call;
+                    call.answer(localStream);
+                    setupCallEvents(call);
+                },
+                () => { // Отклонить
+                    // Отправляем системное сообщение об отклонении
+                    const conn = peer.connect(call.peer);
+                    conn.on('open', () => conn.send({ type: 'CALL_REJECTED', from: myCode }));
+                    call.close();
+                }
+            );
         });
 
         // КНОПКА СБРОСА
-        hangupBtn.addEventListener('click', () => {
+        hangupBtn.onclick = () => {
             if (currentCall) {
                 currentCall.close();
             }
-            statusText.innerText = "Вы сбросили вызов.";
-            statusText.style.color = "#aaa";
             setCallState(false);
-        });
+        };
 
-        // Ошибки PeerJS
+        // ОШИБКИ СЕРВЕРА PEERJS
         peer.on('error', err => {
             console.error(err);
             if (err.type === 'peer-unavailable') {
-                statusText.innerText = "Собеседник с таким кодом не найден в сети.";
-            } else {
-                statusText.innerText = "Ошибка: " + err.type;
+                statusText.innerText = "Пользователь не в сети.";
+                statusText.style.color = "#e94560";
             }
-            statusText.style.color = "#e94560";
             setCallState(false);
+            hideModal(); // Прячем модалку, если звонок сорвался из-за ошибки сети
         });
+
     </script>
 </body>
 </html>
