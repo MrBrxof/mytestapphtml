@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Мессенджер и Звонки</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
@@ -12,7 +12,7 @@
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #18181b; /* Мягкий темный фон */
+            background-color: #18181b;
             color: #e4e4e7;
             display: flex;
             height: 100vh;
@@ -26,12 +26,15 @@
             border-right: 1px solid #3f3f46;
             display: flex;
             flex-direction: column;
-            padding: 24px;
             z-index: 10;
+            transition: 0.3s;
         }
         
-        .sidebar-header {
-            margin-bottom: 30px;
+        .sidebar-inner {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .section-title {
@@ -43,7 +46,7 @@
             margin-bottom: 12px;
         }
 
-        /* Карточка своего кода */
+        /* Карточка кода */
         .my-code-card {
             background: #27272a;
             border: 1px solid #3f3f46;
@@ -52,43 +55,29 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
-            position: relative;
+            margin-bottom: 24px;
         }
-        .my-code-card:hover {
-            background: #303036;
-            border-color: #52525b;
-        }
-        .my-code-card:active {
-            transform: scale(0.98);
-        }
+        .my-code-card:hover { background: #303036; border-color: #52525b; }
+        .my-code-card:active { transform: scale(0.98); }
         .my-code-value {
             font-size: 28px;
             font-weight: 700;
-            color: #60a5fa; /* Спокойный синий */
+            color: #60a5fa;
             letter-spacing: 4px;
         }
-        .copy-hint {
-            font-size: 12px;
-            color: #a1a1aa;
-            margin-top: 6px;
-        }
+        .copy-hint { font-size: 12px; color: #a1a1aa; margin-top: 6px; }
 
-        /* Блок поиска / добавления */
-        .add-friend-container {
-            margin-bottom: 24px;
-        }
+        /* Поиск */
+        .add-friend-container { margin-bottom: 24px; }
         .search-box {
             display: flex;
             background: #27272a;
             border: 1px solid #3f3f46;
             border-radius: 10px;
             overflow: hidden;
-            transition: border-color 0.3s ease;
+            transition: 0.3s;
         }
-        .search-box:focus-within {
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
-        }
+        .search-box:focus-within { border-color: #60a5fa; }
         .search-box input {
             flex: 1;
             background: transparent;
@@ -99,10 +88,7 @@
             outline: none;
             text-transform: uppercase;
         }
-        .search-box input::placeholder {
-            color: #71717a;
-            text-transform: none;
-        }
+        .search-box input::placeholder { color: #71717a; text-transform: none; }
         .btn-add {
             background: #3b82f6;
             color: white;
@@ -110,17 +96,11 @@
             padding: 0 20px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: 0.2s;
         }
         .btn-add:hover { background: #2563eb; }
-        .btn-add:disabled { background: #52525b; cursor: not-allowed; color: #a1a1aa; }
-
-        #add-status {
-            font-size: 13px;
-            margin-top: 8px;
-            min-height: 18px;
-            color: #a1a1aa;
-        }
+        .btn-add:disabled { background: #52525b; color: #a1a1aa; cursor: not-allowed; }
+        #add-status { font-size: 13px; margin-top: 8px; min-height: 18px; color: #a1a1aa; }
 
         /* Список друзей */
         .friend-list {
@@ -128,7 +108,7 @@
             overflow-y: auto;
             list-style: none;
         }
-        .friend-list::-webkit-scrollbar { width: 6px; }
+        .friend-list::-webkit-scrollbar { width: 4px; }
         .friend-list::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
 
         .friend-item {
@@ -138,21 +118,13 @@
             border-radius: 12px;
             margin-bottom: 12px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .friend-item:hover {
-            background: #303036;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        .friend-info {
-            display: flex;
             align-items: center;
             gap: 12px;
+            cursor: pointer;
+            transition: 0.2s;
         }
+        .friend-item:hover { background: #303036; transform: translateY(-2px); }
+        .friend-item.active { border-color: #60a5fa; background: #2e3648; }
         .friend-avatar-small {
             width: 40px;
             height: 40px;
@@ -163,194 +135,257 @@
             justify-content: center;
         }
         .friend-avatar-small svg { width: 20px; height: 20px; fill: #a1a1aa; }
-        .friend-item span { font-weight: 600; font-size: 16px; }
-        
-        .call-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(59, 130, 246, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #60a5fa;
-            transition: 0.2s;
-        }
-        .friend-item:hover .call-icon {
-            background: #3b82f6;
-            color: #fff;
-        }
-        .call-icon svg { width: 18px; height: 18px; fill: currentColor; }
+        .friend-item span { font-weight: 600; font-size: 16px; flex: 1; }
 
-        /* --- ПРАВАЯ ПАНЕЛЬ (Активный звонок) --- */
+        /* --- ПРАВАЯ ПАНЕЛЬ (Чат и Звонки) --- */
         .main-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: #18181b;
             position: relative;
-            background: radial-gradient(circle at center, #202024 0%, #18181b 100%);
+            overflow: hidden;
         }
-
-        .avatar-container {
-            width: 160px;
-            height: 160px;
-            background: #27272a;
-            border: 2px solid #3f3f46;
-            border-radius: 50%;
+        
+        .empty-state {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.4s ease;
-            margin-bottom: 24px;
+            flex-direction: column;
+            color: #71717a;
+            z-index: 5;
+            background: #18181b;
         }
-        .avatar-container svg { width: 80px; height: 80px; fill: #71717a; transition: 0.3s; }
-        
-        .avatar-container.active {
-            border-color: #60a5fa;
-            background: rgba(96, 165, 250, 0.05);
-            box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.4);
-            animation: pulse-soft 2s infinite cubic-bezier(0.66, 0, 0, 1);
-        }
-        .avatar-container.active svg { fill: #60a5fa; }
-        
-        @keyframes pulse-soft {
-            to { box-shadow: 0 0 0 40px rgba(96, 165, 250, 0); }
-        }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
 
-        #call-status { font-size: 16px; color: #a1a1aa; margin-bottom: 30px; text-align: center; font-weight: 500;}
-        #active-peer { font-size: 22px; color: #fff; font-weight: 600; margin-bottom: 12px; display: none; }
-
-        .btn-hangup {
-            background: #ef4444; /* Спокойный красный */
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 30px;
-            display: none;
+        /* Шапка чата */
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: #202024;
+            border-bottom: 1px solid #3f3f46;
+            z-index: 10;
+        }
+        .chat-header-info {
+            display: flex;
             align-items: center;
             gap: 12px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
         }
-        .btn-hangup:hover {
-            background: #dc2626;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+        .btn-back {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #a1a1aa;
+            cursor: pointer;
+            padding: 8px;
+            margin-left: -8px;
         }
-        .btn-hangup svg { width: 22px; height: 22px; fill: currentColor; }
-
-        /* --- ВСПЛЫВАЮЩИЕ ОКНА (Модалки) --- */
-        .overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
+        .btn-back svg { width: 24px; height: 24px; fill: currentColor; }
+        .chat-peer-name { font-size: 18px; font-weight: 600; color: #fff; }
+        
+        .btn-call {
+            background: rgba(74, 222, 128, 0.1);
+            color: #4ade80;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.3s ease;
-        }
-        .overlay.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .modal {
-            background: #27272a;
-            border: 1px solid #3f3f46;
-            padding: 32px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            width: 380px;
-            transform: translateY(20px);
-            transition: all 0.3s ease;
-        }
-        .overlay.visible .modal { transform: translateY(0); }
-        
-        .modal h2 { margin-top: 0; margin-bottom: 8px; color: #fff; font-size: 22px; }
-        .modal p { color: #a1a1aa; font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
-        
-        .modal-btns { display: flex; gap: 12px; justify-content: center; }
-        .modal-btns button {
-            flex: 1;
-            padding: 14px;
-            font-size: 15px;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
+            gap: 8px;
             cursor: pointer;
             transition: 0.2s;
         }
-        .btn-accept { background: #3b82f6; color: white; }
-        .btn-accept:hover { background: #2563eb; }
-        .btn-reject { background: #3f3f46; color: #e4e4e7; }
-        .btn-reject:hover { background: #52525b; }
+        .btn-call:hover { background: #4ade80; color: #18181b; }
+        .btn-call svg { width: 20px; height: 20px; fill: currentColor; }
 
+        /* Зона звонка */
+        .active-call-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: radial-gradient(circle at center, #27272a 0%, #18181b 100%);
+            border-bottom: 1px solid #3f3f46;
+        }
+        .active-call-area.visible { display: flex; }
+        
+        .avatar-container {
+            width: 100px; height: 100px;
+            background: #27272a; border: 2px solid #3f3f46;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 16px;
+            transition: 0.3s;
+        }
+        .avatar-container.pulsing {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.4);
+            animation: pulse-soft 1.5s infinite;
+        }
+        @keyframes pulse-soft { to { box-shadow: 0 0 0 30px rgba(96, 165, 250, 0); } }
+        .avatar-container svg { width: 50px; height: 50px; fill: #71717a; }
+        .avatar-container.pulsing svg { fill: #60a5fa; }
+        
+        #call-status { color: #a1a1aa; margin-bottom: 20px; font-weight: 500; }
+        
+        .btn-hangup {
+            background: #ef4444; color: white; border: none;
+            padding: 12px 24px; border-radius: 20px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
+            transition: 0.2s;
+        }
+        .btn-hangup:hover { background: #dc2626; }
+        .btn-hangup svg { width: 18px; height: 18px; fill: currentColor; }
+
+        /* Сообщения */
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-thumb { background: #3f3f46; }
+        
+        .msg { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word;}
+        .msg.in { background: #27272a; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .msg.out { background: #3b82f6; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+        /* Ввод сообщения */
+        .chat-input-area {
+            padding: 16px 24px;
+            background: #202024;
+            border-top: 1px solid #3f3f46;
+            display: flex;
+            gap: 12px;
+        }
+        .chat-input-area input {
+            flex: 1;
+            background: #27272a; border: 1px solid #3f3f46;
+            padding: 14px; border-radius: 8px; color: #fff;
+            font-size: 15px; outline: none; transition: 0.2s;
+        }
+        .chat-input-area input:focus { border-color: #60a5fa; }
+        .btn-send {
+            background: #60a5fa; border: none; border-radius: 8px;
+            width: 50px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.2s; color: #18181b;
+        }
+        .btn-send:hover { background: #3b82f6; }
+        .btn-send svg { width: 24px; height: 24px; fill: currentColor; }
+
+        /* Модалка */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
+            z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .overlay.visible { opacity: 1; pointer-events: auto; }
+        .modal {
+            background: #27272a; border: 1px solid #3f3f46; padding: 32px;
+            border-radius: 20px; text-align: center; width: 340px; transform: scale(0.9); transition: 0.3s;
+        }
+        .overlay.visible .modal { transform: scale(1); }
+        .modal h2 { margin: 0 0 8px 0; font-size: 20px; }
+        .modal p { color: #a1a1aa; margin-bottom: 24px; }
+        .modal-btns { display: flex; gap: 12px; }
+        .modal-btns button {
+            flex: 1; padding: 12px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer;
+        }
+        .btn-accept { background: #4ade80; color: #18181b; }
+        .btn-reject { background: #ef4444; color: white; }
+
+        /* --- АДАПТИВНОСТЬ (Телефоны/Планшеты) --- */
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; position: absolute; height: 100%; top: 0; left: 0; background: #18181b; }
+            .sidebar.hidden-mobile { transform: translateX(-100%); }
+            
+            .main-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(100%); transition: 0.3s; z-index: 20;}
+            .main-area.visible-mobile { transform: translateX(0); }
+            
+            .btn-back { display: block; }
+            .empty-state { display: none; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- ЛЕВАЯ ПАНЕЛЬ -->
-    <div class="sidebar">
-        <div class="sidebar-header">
+    <!-- САЙДБАР (Список) -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-inner">
             <div class="section-title">Твой код связи</div>
-            <!-- Карточка с кодом, на которую можно нажать для копирования -->
-            <div class="my-code-card" id="my-code-container" title="Нажми, чтобы скопировать">
+            <div class="my-code-card" id="my-code-container">
                 <div class="my-code-value" id="my-code">...</div>
                 <div class="copy-hint" id="copy-hint">Нажми, чтобы скопировать</div>
             </div>
-        </div>
 
-        <div class="add-friend-container">
-            <div class="section-title">Добавить друга</div>
-            <div class="search-box">
-                <input type="text" id="friend-input" placeholder="Введи 6 символов" maxlength="6">
-                <button class="btn-add" id="add-friend-btn">Найти</button>
+            <div class="add-friend-container">
+                <div class="section-title">Добавить друга</div>
+                <div class="search-box">
+                    <input type="text" id="friend-input" placeholder="Код из 6 символов" maxlength="6">
+                    <button class="btn-add" id="add-friend-btn">Найти</button>
+                </div>
+                <div id="add-status"></div>
             </div>
-            <div id="add-status"></div>
-        </div>
 
-        <div class="section-title">Список друзей</div>
-        <ul class="friend-list" id="friend-list">
-            <!-- Друзья -->
-        </ul>
+            <div class="section-title">Список друзей</div>
+            <ul class="friend-list" id="friend-list"></ul>
+        </div>
     </div>
 
-    <!-- ПРАВАЯ ПАНЕЛЬ -->
-    <div class="main-area">
-        <div id="active-peer">...</div>
-        
-        <div class="avatar-container" id="avatar">
-            <!-- Элегантная иконка пользователя -->
-            <svg viewBox="0 0 24 24">
-                <path d="M12 11C13.6569 11 15 9.65685 15 8C15 6.34315 13.6569 5 12 5C10.3431 5 9 6.34315 9 8C9 9.65685 10.3431 11 12 11Z" fill="currentColor"/>
-                <path d="M6 19C6 16.7909 7.79086 15 10 15H14C16.2091 15 18 16.7909 18 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+    <!-- ОСНОВНАЯ ЗОНА (Чат/Звонок) -->
+    <div class="main-area" id="main-area">
+        <div class="empty-state" id="empty-state">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z"/></svg>
+            <p>Выберите друга для общения</p>
         </div>
 
-        <div id="call-status">Подключение к серверам связи...</div>
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <button class="btn-back" id="btn-back">
+                    <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
+                </button>
+                <div class="chat-peer-name" id="chat-title">Друг</div>
+            </div>
+            <button class="btn-call" id="btn-call">
+                <svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+                Звонок
+            </button>
+        </div>
 
-        <button id="hangup-btn" class="btn-hangup">
-            <!-- Иконка завершения трубки -->
-            <svg viewBox="0 0 24 24">
-                <path d="M21 15.46L16.28 14c-.38-.11-.79-.01-1.07.28l-2.73 2.73c-3.13-1.63-5.69-4.18-7.31-7.31l2.73-2.73c.29-.29.39-.7.28-1.07L6.73 3.19C6.42 2.27 5.27 2 4.4 2H3.5C2.67 2 2 2.67 2 3.5c0 10.22 8.28 18.5 18.5 18.5.83 0 1.5-.67 1.5-1.5v-.9c0-.87-.27-2.02-1.05-2.61L21 15.46z" transform="rotate(135 12 12)"/>
-            </svg>
-            Завершить звонок
-        </button>
+        <div class="active-call-area" id="call-area">
+            <div class="avatar-container" id="call-avatar">
+                <svg viewBox="0 0 24 24"><path d="M12 11C13.6569 11 15 9.65685 15 8C15 6.34315 13.6569 5 12 5C10.3431 5 9 6.34315 9 8C9 9.65685 10.3431 11 12 11Z"/><path d="M6 19C6 16.7909 7.79086 15 10 15H14C16.2091 15 18 16.7909 18 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+            </div>
+            <div id="call-status">Подключение...</div>
+            <button class="btn-hangup" id="btn-hangup">
+                <svg viewBox="0 0 24 24"><path d="M21 15.46L16.28 14c-.38-.11-.79-.01-1.07.28l-2.73 2.73c-3.13-1.63-5.69-4.18-7.31-7.31l2.73-2.73c.29-.29.39-.7.28-1.07L6.73 3.19C6.42 2.27 5.27 2 4.4 2H3.5C2.67 2 2 2.67 2 3.5c0 10.22 8.28 18.5 18.5 18.5.83 0 1.5-.67 1.5-1.5v-.9c0-.87-.27-2.02-1.05-2.61L21 15.46z" transform="rotate(135 12 12)"/></svg>
+                Завершить
+            </button>
+        </div>
+
+        <div class="chat-messages" id="chat-messages"></div>
+
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Сообщение...">
+            <button class="btn-send" id="btn-send">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
     </div>
 
-    <!-- ОКНО ПОДТВЕРЖДЕНИЯ -->
+    <!-- МОДАЛКА ЗВОНКОВ/ЗАПРОСОВ -->
     <div class="overlay" id="modal-overlay">
         <div class="modal">
-            <h2 id="modal-title">Входящий вызов</h2>
+            <h2 id="modal-title">...</h2>
             <p id="modal-desc">...</p>
             <div class="modal-btns">
                 <button class="btn-reject" id="modal-reject">Отклонить</button>
@@ -362,311 +397,304 @@
     <audio id="remote-audio" autoplay></audio>
 
     <script>
-        // --- ГЕНЕРАЦИЯ И КОПИРОВАНИЕ КОДА ---
+        // === 1. ГЕНЕРАЦИЯ ЗВУКОВ (Web Audio API) ===
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        // Разблокировка аудио контекста по клику (правила браузеров)
+        document.body.addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }, { once: true });
+
+        function playTone(freq, type, duration, vol = 0.1) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        let ringInterval, callToneInterval;
+
+        function playNotify() {
+            playTone(600, 'sine', 0.1, 0.2);
+            setTimeout(() => playTone(800, 'sine', 0.2, 0.2), 150);
+        }
+
+        function startIncomingRingtone() {
+            if (ringInterval) return;
+            const ring = () => {
+                playTone(400, 'square', 0.4, 0.05);
+                setTimeout(() => playTone(400, 'square', 0.4, 0.05), 500);
+            };
+            ring();
+            ringInterval = setInterval(ring, 2000);
+        }
+        function stopIncomingRingtone() { clearInterval(ringInterval); ringInterval = null; }
+
+        function startOutgoingCallTone() {
+            if (callToneInterval) return;
+            const callTone = () => playTone(440, 'sine', 1.0, 0.05);
+            callTone();
+            callToneInterval = setInterval(callTone, 3000);
+        }
+        function stopOutgoingCallTone() { clearInterval(callToneInterval); callToneInterval = null; }
+
+
+        // === 2. ИНИЦИАЛИЗАЦИЯ ===
         function generateUniqueId() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let id = '';
-            for (let i = 0; i < 6; i++) {
-                id += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
+            for(let i=0; i<6; i++) id += chars.charAt(Math.floor(Math.random() * chars.length));
             return id;
         }
 
-        let myCode = localStorage.getItem('my_peer_code');
-        if (!myCode) {
-            myCode = generateUniqueId();
-            localStorage.setItem('my_peer_code', myCode);
-        }
+        let myCode = localStorage.getItem('my_peer_code') || generateUniqueId();
+        localStorage.setItem('my_peer_code', myCode);
         document.getElementById('my-code').innerText = myCode;
 
-        // Фича: копирование кода по клику
         document.getElementById('my-code-container').onclick = () => {
-            navigator.clipboard.writeText(myCode).then(() => {
-                const hint = document.getElementById('copy-hint');
-                hint.innerText = "Скопировано!";
-                hint.style.color = "#4ade80";
-                setTimeout(() => {
-                    hint.innerText = "Нажми, чтобы скопировать";
-                    hint.style.color = "#a1a1aa";
-                }, 2000);
-            });
+            navigator.clipboard.writeText(myCode);
+            const hint = document.getElementById('copy-hint');
+            hint.innerText = "Скопировано!";
+            hint.style.color = "#4ade80";
+            setTimeout(() => { hint.innerText = "Нажми, чтобы скопировать"; hint.style.color = "#a1a1aa"; }, 2000);
         };
 
-        // --- ИНИЦИАЛИЗАЦИЯ PEERJS ---
-        const peer = new Peer(myCode, {
-            config: {
-                'iceServers': [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' }
-                ]
-            }
-        });
+        const peer = new Peer(myCode, { config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
 
         let localStream = null;
         let currentCall = null;
         let friends = JSON.parse(localStorage.getItem('my_friends') || '[]');
+        let chatHistory = JSON.parse(localStorage.getItem('my_chats') || '{}');
         
-        let isAddingFriend = false; 
-        let connectionTimeout;
-
-        const statusText = document.getElementById('call-status');
-        const activePeerText = document.getElementById('active-peer');
-        const hangupBtn = document.getElementById('hangup-btn');
-        const avatar = document.getElementById('avatar');
-        const remoteAudio = document.getElementById('remote-audio');
-        const friendListEl = document.getElementById('friend-list');
-        const addStatus = document.getElementById('add-status');
-        const addFriendBtn = document.getElementById('add-friend-btn');
-        
-        const overlay = document.getElementById('modal-overlay');
-        const modalTitle = document.getElementById('modal-title');
-        const modalDesc = document.getElementById('modal-desc');
-        const btnAccept = document.getElementById('modal-accept');
-        const btnReject = document.getElementById('modal-reject');
-        
-        let modalAcceptCallback = null;
-        let modalRejectCallback = null;
+        let activeChatId = null;
 
         peer.on('open', () => {
             navigator.mediaDevices.getUserMedia({ video: false, audio: true })
-                .then(stream => {
-                    localStream = stream;
-                    statusText.innerText = "Система готова. Выбери друга для звонка.";
-                    statusText.style.color = "#a1a1aa";
-                })
-                .catch(err => {
-                    console.error(err);
-                    statusText.innerText = "Нет доступа к микрофону.";
-                    statusText.style.color = "#ef4444";
-                });
+                .then(stream => localStream = stream)
+                .catch(err => console.error("Микрофон недоступен", err));
         });
 
-        peer.on('disconnected', () => {
-            statusText.innerText = "Переподключение...";
-            peer.reconnect();
-        });
+        // === 3. ИНТЕРФЕЙС ===
+        const sidebar = document.getElementById('sidebar');
+        const mainArea = document.getElementById('main-area');
+        const emptyState = document.getElementById('empty-state');
+        const friendListEl = document.getElementById('friend-list');
+        const chatMessagesEl = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const callArea = document.getElementById('call-area');
+        const callStatus = document.getElementById('call-status');
+        const callAvatar = document.getElementById('call-avatar');
 
-        // --- ИНТЕРФЕЙС СПИСКА ДРУЗЕЙ ---
         function renderFriends() {
             friendListEl.innerHTML = '';
-            friends.forEach(friendId => {
+            friends.forEach(id => {
                 const li = document.createElement('li');
-                li.className = 'friend-item';
+                li.className = `friend-item ${activeChatId === id ? 'active' : ''}`;
                 li.innerHTML = `
-                    <div class="friend-info">
-                        <div class="friend-avatar-small">
-                            <svg viewBox="0 0 24 24"><path d="M12 11C13.6569 11 15 9.65685 15 8C15 6.34315 13.6569 5 12 5C10.3431 5 9 6.34315 9 8C9 9.65685 10.3431 11 12 11Z" fill="currentColor"/><path d="M6 19C6 16.7909 7.79086 15 10 15H14C16.2091 15 18 16.7909 18 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                        </div>
-                        <span>${friendId}</span>
+                    <div class="friend-avatar-small">
+                        <svg viewBox="0 0 24 24"><path d="M12 11C13.6569 11 15 9.65685 15 8C15 6.34315 13.6569 5 12 5C10.3431 5 9 6.34315 9 8C9 9.65685 10.3431 11 12 11Z" fill="currentColor"/><path d="M6 19C6 16.7909 7.79086 15 10 15H14C16.2091 15 18 16.7909 18 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                     </div>
-                    <div class="call-icon">
-                        <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-                    </div>
+                    <span>${id}</span>
                 `;
-                li.onclick = () => initiateCall(friendId);
+                li.onclick = () => openChat(id);
                 friendListEl.appendChild(li);
             });
         }
         renderFriends();
 
-        function addFriendToList(id) {
-            if (!friends.includes(id)) {
-                friends.push(id);
-                localStorage.setItem('my_friends', JSON.stringify(friends));
-                renderFriends();
-            }
-        }
-
-        function showStatus(msg, color = "#a1a1aa") {
-            addStatus.innerText = msg;
-            addStatus.style.color = color;
-            setTimeout(() => { if (!isAddingFriend) addStatus.innerText = ""; }, 4000);
-        }
-
-        function resetAddBtn() {
-            isAddingFriend = false;
-            addFriendBtn.disabled = false;
-            addFriendBtn.innerText = "Найти";
-            clearTimeout(connectionTimeout);
-        }
-
-        function showModal(title, desc, onAccept, onReject) {
-            modalTitle.innerText = title;
-            modalDesc.innerText = desc;
-            modalAcceptCallback = onAccept;
-            modalRejectCallback = onReject;
-            overlay.classList.add('visible');
-        }
-
-        function hideModal() {
-            overlay.classList.remove('visible');
-            modalAcceptCallback = null;
-            modalRejectCallback = null;
-        }
-
-        btnAccept.onclick = () => { if (modalAcceptCallback) modalAcceptCallback(); hideModal(); };
-        btnReject.onclick = () => { if (modalRejectCallback) modalRejectCallback(); hideModal(); };
-
-        function setCallState(isActive, peerId = "") {
-            if (isActive) {
-                activePeerText.innerText = `Звонок: ${peerId}`;
-                activePeerText.style.display = 'block';
-                hangupBtn.style.display = 'flex';
-                avatar.classList.add('active');
-            } else {
-                activePeerText.style.display = 'none';
-                hangupBtn.style.display = 'none';
-                avatar.classList.remove('active');
-                remoteAudio.srcObject = null;
-                currentCall = null;
-                statusText.innerText = "Система готова. Выбери друга для звонка.";
-                statusText.style.color = "#a1a1aa";
-            }
-        }
-
-        // --- ЛОГИКА ДОБАВЛЕНИЯ В ДРУЗЬЯ ---
-        addFriendBtn.onclick = () => {
-            const targetId = document.getElementById('friend-input').value.trim().toUpperCase();
-            if (targetId.length !== 6) return alert("Код должен состоять из 6 символов.");
-            if (targetId === myCode) return alert("Нельзя добавить самого себя.");
-            if (friends.includes(targetId)) return alert("Пользователь уже в списке друзей.");
-
-            isAddingFriend = true;
-            addFriendBtn.disabled = true;
-            addFriendBtn.innerText = "...";
-            showStatus("Поиск пользователя...", "#a1a1aa");
-
-            const conn = peer.connect(targetId, { reliable: true });
-
-            connectionTimeout = setTimeout(() => {
-                if (isAddingFriend) {
-                    showStatus("Пользователь не найден (оффлайн)", "#ef4444");
-                    resetAddBtn();
-                    conn.close();
-                }
-            }, 8000);
-
-            conn.on('open', () => {
-                clearTimeout(connectionTimeout);
-                conn.send({ type: 'FRIEND_REQUEST', from: myCode });
-                showStatus("Запрос успешно отправлен!", "#4ade80");
-                resetAddBtn();
-                document.getElementById('friend-input').value = '';
-                setTimeout(() => conn.close(), 1000); 
-            });
-
-            conn.on('error', () => {
-                showStatus("Ошибка при отправке", "#ef4444");
-                resetAddBtn();
-            });
+        document.getElementById('btn-back').onclick = () => {
+            sidebar.classList.remove('hidden-mobile');
+            mainArea.classList.remove('visible-mobile');
+            activeChatId = null;
+            renderFriends();
         };
 
-        // --- ОБРАБОТКА ДАННЫХ (ЗАПРОСЫ) ---
+        function openChat(id) {
+            activeChatId = id;
+            document.getElementById('chat-title').innerText = id;
+            emptyState.style.display = 'none';
+            
+            // Адаптив для телефонов (сдвигаем панели)
+            sidebar.classList.add('hidden-mobile');
+            mainArea.classList.add('visible-mobile');
+            
+            renderFriends();
+            renderMessages();
+        }
+
+        function renderMessages() {
+            chatMessagesEl.innerHTML = '';
+            const msgs = chatHistory[activeChatId] || [];
+            msgs.forEach(m => {
+                const div = document.createElement('div');
+                div.className = `msg ${m.from === myCode ? 'out' : 'in'}`;
+                div.innerText = m.text;
+                chatMessagesEl.appendChild(div);
+            });
+            chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+        }
+
+        function saveMessage(chatId, from, text) {
+            if (!chatHistory[chatId]) chatHistory[chatId] = [];
+            chatHistory[chatId].push({ from, text });
+            localStorage.setItem('my_chats', JSON.stringify(chatHistory));
+            if (activeChatId === chatId) renderMessages();
+        }
+
+        // === 4. ОБМЕН ДАННЫМИ ===
+        function sendData(targetId, data) {
+            const conn = peer.connect(targetId, { reliable: true });
+            conn.on('open', () => {
+                conn.send(data);
+                setTimeout(() => conn.close(), 500);
+            });
+        }
+
+        // Отправка текстового сообщения
+        function sendTextMessage() {
+            const text = chatInput.value.trim();
+            if (!text || !activeChatId) return;
+            
+            saveMessage(activeChatId, myCode, text);
+            sendData(activeChatId, { type: 'CHAT', text: text, from: myCode });
+            chatInput.value = '';
+        }
+        document.getElementById('btn-send').onclick = sendTextMessage;
+        chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendTextMessage(); });
+
+        // Добавление в друзья
+        document.getElementById('add-friend-btn').onclick = () => {
+            const targetId = document.getElementById('friend-input').value.trim().toUpperCase();
+            if (targetId.length !== 6 || targetId === myCode || friends.includes(targetId)) return;
+            
+            document.getElementById('add-status').innerText = "Отправка...";
+            sendData(targetId, { type: 'FRIEND_REQ', from: myCode });
+            setTimeout(() => document.getElementById('add-status').innerText = "Запрос отправлен", 1000);
+        };
+
+        // Прием данных
         peer.on('connection', conn => {
             conn.on('data', data => {
-                if (data.type === 'FRIEND_REQUEST') {
-                    showModal("Заявка в друзья", `Пользователь ${data.from} хочет добавить тебя в контакты.`, 
-                        () => { 
-                            addFriendToList(data.from);
-                            const reply = peer.connect(data.from, { reliable: true });
-                            reply.on('open', () => {
-                                reply.send({ type: 'FRIEND_ACCEPT', from: myCode });
-                                setTimeout(() => reply.close(), 1000);
-                            });
-                        }, 
-                        () => { /* Отклонил */ }
-                    );
-                } 
-                else if (data.type === 'FRIEND_ACCEPT') {
-                    showStatus(`${data.from} принял заявку!`, "#4ade80");
-                    addFriendToList(data.from);
+                if (data.type === 'CHAT') {
+                    playNotify();
+                    saveMessage(data.from, data.from, data.text);
+                    if (!friends.includes(data.from)) {
+                        friends.push(data.from);
+                        localStorage.setItem('my_friends', JSON.stringify(friends));
+                        renderFriends();
+                    }
                 }
-                else if (data.type === 'CALL_REJECTED') {
-                    statusText.innerText = "Собеседник отклонил вызов.";
-                    statusText.style.color = "#ef4444";
-                    setCallState(false);
+                else if (data.type === 'FRIEND_REQ') {
+                    playNotify();
+                    showModal("Заявка в друзья", `${data.from} хочет добавить вас.`, 
+                        () => { 
+                            if (!friends.includes(data.from)) friends.push(data.from);
+                            localStorage.setItem('my_friends', JSON.stringify(friends));
+                            renderFriends();
+                            sendData(data.from, { type: 'FRIEND_ACC', from: myCode });
+                        }, () => {}
+                    );
+                }
+                else if (data.type === 'FRIEND_ACC') {
+                    playNotify();
+                    if (!friends.includes(data.from)) friends.push(data.from);
+                    localStorage.setItem('my_friends', JSON.stringify(friends));
+                    renderFriends();
+                }
+                else if (data.type === 'CALL_REJ') {
+                    stopOutgoingCallTone();
+                    callStatus.innerText = "Отклонено";
+                    setTimeout(() => setCallUI(false), 2000);
                 }
             });
         });
 
-        // --- ГЛОБАЛЬНАЯ ОБРАБОТКА ОШИБОК ---
-        peer.on('error', err => {
-            if (err.type === 'peer-unavailable') {
-                if (isAddingFriend) {
-                    showStatus("Пользователь оффлайн", "#ef4444");
-                    resetAddBtn();
+        // === 5. МОДАЛКА ===
+        const overlay = document.getElementById('modal-overlay');
+        let modalAccCb, modalRejCb;
+        function showModal(title, desc, onAcc, onRej) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-desc').innerText = desc;
+            modalAccCb = onAcc; modalRejCb = onRej;
+            overlay.classList.add('visible');
+        }
+        function hideModal() { overlay.classList.remove('visible'); }
+        document.getElementById('modal-accept').onclick = () => { if(modalAccCb) modalAccCb(); hideModal(); };
+        document.getElementById('modal-reject').onclick = () => { if(modalRejCb) modalRejCb(); hideModal(); };
+
+        // === 6. ЗВОНКИ ===
+        function setCallUI(isActive, isConnecting = false) {
+            if (isActive) {
+                callArea.classList.add('visible');
+                if (isConnecting) {
+                    callStatus.innerText = "Идут гудки...";
+                    callAvatar.classList.remove('pulsing');
                 } else {
-                    statusText.innerText = "Абонент не в сети.";
-                    statusText.style.color = "#ef4444";
-                    setCallState(false);
+                    callStatus.innerText = "Идет разговор";
+                    callAvatar.classList.add('pulsing');
                 }
             } else {
-                statusText.innerText = "Ошибка сети.";
-                setCallState(false);
+                callArea.classList.remove('visible');
+                document.getElementById('remote-audio').srcObject = null;
+                currentCall = null;
+                stopOutgoingCallTone();
+                stopIncomingRingtone();
             }
-            hideModal();
-        });
-
-        // --- ЛОГИКА ЗВОНКОВ ---
-        function setupCallEvents(call) {
-            call.on('stream', remoteStream => {
-                remoteAudio.srcObject = remoteStream;
-                statusText.innerText = "Идет разговор...";
-                statusText.style.color = "#60a5fa";
-                setCallState(true, call.peer);
-            });
-
-            call.on('close', () => {
-                statusText.innerText = "Вызов завершен.";
-                setCallState(false);
-            });
-
-            call.on('error', () => {
-                setCallState(false);
-            });
         }
 
-        function initiateCall(targetId) {
-            if (!localStream) return alert("Проверьте подключение микрофона.");
-            if (currentCall) return alert("Вы уже находитесь на линии.");
+        function setupCall(call) {
+            call.on('stream', stream => {
+                stopOutgoingCallTone();
+                stopIncomingRingtone();
+                document.getElementById('remote-audio').srcObject = stream;
+                setCallUI(true, false);
+            });
+            call.on('close', () => setCallUI(false));
+            call.on('error', () => setCallUI(false));
+        }
 
-            statusText.innerText = `Звоним абоненту ${targetId}...`;
-            statusText.style.color = "#e4e4e7";
-            setCallState(true, targetId); 
-            
-            const call = peer.call(targetId, localStream);
+        // Исходящий
+        document.getElementById('btn-call').onclick = () => {
+            if (!activeChatId || currentCall || !localStream) return;
+            startOutgoingCallTone();
+            setCallUI(true, true);
+            const call = peer.call(activeChatId, localStream);
             currentCall = call;
-            setupCallEvents(call);
-        }
+            setupCall(call);
+        };
 
+        // Входящий
         peer.on('call', call => {
-            if (currentCall) {
-                call.close();
-                return;
-            }
-
-            showModal("Входящий звонок", `Вызывает: ${call.peer}`, 
-                () => { 
+            if (currentCall) { call.close(); return; }
+            
+            startIncomingRingtone();
+            showModal("Входящий звонок", `Звонит: ${call.peer}`, 
+                () => { // Принять
+                    stopIncomingRingtone();
                     currentCall = call;
                     call.answer(localStream);
-                    setupCallEvents(call);
+                    openChat(call.peer);
+                    setupCall(call);
                 },
-                () => { 
-                    const conn = peer.connect(call.peer, { reliable: true });
-                    conn.on('open', () => {
-                        conn.send({ type: 'CALL_REJECTED', from: myCode });
-                        setTimeout(() => conn.close(), 500);
-                    });
+                () => { // Отклонить
+                    stopIncomingRingtone();
+                    sendData(call.peer, { type: 'CALL_REJ', from: myCode });
                     call.close();
                 }
             );
         });
 
-        hangupBtn.onclick = () => {
-            if (currentCall) {
-                currentCall.close();
-            }
-            setCallState(false);
+        document.getElementById('btn-hangup').onclick = () => {
+            if (currentCall) currentCall.close();
+            setCallUI(false);
         };
 
     </script>
