@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>7leaf - Мессенджер</title>
+    <title>7leaf</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -48,7 +48,6 @@
         .btn-secondary { background: transparent; color: #a1a1aa; border: 1px solid #3f3f46; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .btn-secondary:hover { background: #27272a; color: #fff; }
         
-        /* Выбор аватарки */
         .avatar-options { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
         .avatar-preset { width: 60px; height: 60px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; object-fit: cover; }
         .avatar-preset.selected { border-color: #4ade80; }
@@ -63,51 +62,82 @@
         .sidebar { width: 340px; background: #202024; border-right: 1px solid #3f3f46; display: flex; flex-direction: column; z-index: 10; transition: 0.3s; }
         .sidebar-inner { padding: 20px; display: flex; flex-direction: column; height: 100%; }
 
-        /* Профиль (Слева вверху) */
-        .my-profile { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #3f3f46; }
-        .avatar-circle { width: 48px; height: 48px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #fff; object-fit: cover; }
-        .profile-info { display: flex; flex-direction: column; }
-        .profile-name { font-weight: 600; font-size: 16px; color: #fff; }
-        .profile-user { font-size: 13px; color: #71717a; }
-        .logout-btn { margin-left: auto; background: none; border: none; color: #71717a; cursor: pointer; }
-        .logout-btn:hover { color: #ef4444; }
-
-        /* Статус и поиск */
-        .connection-status { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #a1a1aa; display: flex; align-items: center; gap: 6px;}
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #a1a1aa; }
+        /* Шапка сайдбара (Статус + Моя аватарка) */
+        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
         
-        .search-box { display: flex; background: #27272a; border: 1px solid #3f3f46; border-radius: 10px; overflow: hidden; margin-bottom: 8px; transition: 0.3s; }
+        .main-status {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4ade80;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+        }
+        .main-status.error { color: #ef4444; font-size: 20px; }
+        .main-status.connecting { color: #a1a1aa; font-size: 20px; }
+        
+        /* Анимация точек */
+        .animated-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+        }
+
+        .avatar-circle { width: 44px; height: 44px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #fff; object-fit: cover; }
+
+        /* Поиск */
+        .search-box { display: flex; background: #27272a; border: 1px solid #3f3f46; border-radius: 10px; overflow: hidden; margin-bottom: 8px; transition: 0.3s; align-items: center; padding-right: 4px; }
         .search-box:focus-within { border-color: #4ade80; }
         .search-box input { flex: 1; background: transparent; border: none; padding: 12px 14px; color: #fff; font-size: 14px; outline: none; }
-        .btn-add { background: #4ade80; color: #18181b; border: none; padding: 0 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-add:hover { background: #22c55e; }
-        #add-status { font-size: 12px; margin-bottom: 20px; min-height: 15px; color: #a1a1aa; }
+        .btn-search { background: transparent; color: #a1a1aa; border: none; padding: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .btn-search:hover { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
+        #add-status { font-size: 12px; margin-bottom: 20px; min-height: 15px; color: #a1a1aa; text-align: center; }
 
         /* Список друзей */
         .friend-list { flex: 1; overflow-y: auto; list-style: none; }
         .friend-list::-webkit-scrollbar { width: 4px; }
         .friend-list::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
-        .friend-item { background: #27272a; border: 1px solid #3f3f46; padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .friend-item { position: relative; background: #27272a; border: 1px solid #3f3f46; padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
         .friend-item:hover { background: #303036; }
         .friend-item.active { border-color: #4ade80; background: #2e3648; }
         .friend-avatar-small { width: 40px; height: 40px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: #fff; object-fit: cover; }
         .friend-item-info { display: flex; flex-direction: column; flex: 1; }
         .friend-item-name { font-weight: 600; font-size: 15px; }
-        .friend-item-user { font-size: 12px; color: #a1a1aa; }
+        
+        /* Бейдж новых сообщений */
+        .unread-badge {
+            background: #4ade80;
+            color: #18181b;
+            font-size: 11px;
+            font-weight: 700;
+            height: 20px;
+            min-width: 20px;
+            padding: 0 6px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         /* ПРАВАЯ ПАНЕЛЬ */
         .main-area { flex: 1; display: flex; flex-direction: column; background: #18181b; position: relative; overflow: hidden; }
-        .empty-state { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #71717a; z-index: 5; background: #18181b; }
-        .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; color: #4ade80; }
+        
+        /* Пустое состояние (теперь просто черный фон) */
+        .empty-state { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: #18181b; display: flex;}
 
         /* Шапка чата */
         .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; background: #202024; border-bottom: 1px solid #3f3f46; z-index: 10; }
         .chat-header-info { display: flex; align-items: center; gap: 12px; }
         .btn-back { display: none; background: transparent; border: none; color: #a1a1aa; cursor: pointer; padding: 8px; margin-left: -8px; }
         .chat-peer-name { font-size: 18px; font-weight: 600; color: #fff; }
-        .chat-peer-user { font-size: 13px; color: #71717a; }
-        .btn-call { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; }
-        .btn-call:hover { background: #4ade80; color: #18181b; }
+        
+        .btn-call { background: transparent; color: #4ade80; border: none; padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .btn-call:hover { background: rgba(74, 222, 128, 0.1); }
 
         /* Зона звонка */
         .active-call-area { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 40px; background: radial-gradient(circle at center, #27272a 0%, #18181b 100%); border-bottom: 1px solid #3f3f46; }
@@ -115,15 +145,35 @@
         .call-avatar { width: 100px; height: 100px; border-radius: 50%; border: 2px solid #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; background: #3f3f46; color: #fff; margin-bottom: 16px; transition: 0.3s; object-fit: cover; }
         .call-avatar.pulsing { border-color: #4ade80; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); animation: pulse-green 1.5s infinite; }
         @keyframes pulse-green { to { box-shadow: 0 0 0 30px rgba(74, 222, 128, 0); } }
-        #call-status { color: #a1a1aa; margin-bottom: 20px; font-weight: 500; }
-        .btn-hangup { background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        #call-status { color: #a1a1aa; margin-bottom: 24px; font-weight: 500; }
+        
+        .call-controls { display: flex; gap: 16px; }
+        .btn-hangup, .btn-mute {
+            color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .btn-hangup { background: #ef4444; }
         .btn-hangup:hover { background: #dc2626; }
+        .btn-mute { background: #3f3f46; }
+        .btn-mute:hover { background: #52525b; }
+        .btn-mute.muted { background: #eab308; color: #18181b; }
 
         /* Сообщения */
         .chat-messages { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .msg { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word;}
         .msg.in { background: #27272a; align-self: flex-start; border-bottom-left-radius: 4px; }
         .msg.out { background: #4ade80; color: #18181b; align-self: flex-end; border-bottom-right-radius: 4px; }
+        
+        /* Системные сообщения (звонки и тд) */
+        .msg.system {
+            align-self: center;
+            background: rgba(63, 63, 70, 0.5);
+            color: #a1a1aa;
+            font-size: 12px;
+            padding: 6px 16px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 90%;
+        }
 
         /* Ввод сообщения */
         .chat-input-area { padding: 16px 24px; background: #202024; border-top: 1px solid #3f3f46; display: flex; gap: 12px; }
@@ -162,22 +212,19 @@
         <div class="auth-card">
             <div class="auth-logo">7leaf</div>
             
-            <!-- Выбор: Войти или Регистрация -->
             <div id="auth-init" class="auth-buttons active">
                 <button class="btn-primary" onclick="showLogin()">Войти</button>
                 <button class="btn-secondary" onclick="showRegStep(1)">Зарегистрироваться</button>
             </div>
 
-            <!-- Вход -->
             <div id="auth-login" class="auth-step">
                 <h3>Вход</h3>
-                <input type="text" id="login-user" placeholder="Ваш юз (логин)" lowercase>
+                <input type="text" id="login-user" placeholder="Ваш юз (логин)">
                 <input type="password" id="login-pass" placeholder="Пароль">
                 <button class="btn-primary" onclick="doLogin()">Войти</button>
                 <button class="btn-secondary" onclick="resetAuth()">Назад</button>
             </div>
 
-            <!-- Регистрация Шаг 1 -->
             <div id="reg-step-1" class="auth-step">
                 <h3>Шаг 1: Имя</h3>
                 <p>Как вас будут видеть друзья?</p>
@@ -186,7 +233,6 @@
                 <button class="btn-secondary" onclick="resetAuth()">Отмена</button>
             </div>
 
-            <!-- Регистрация Шаг 2 -->
             <div id="reg-step-2" class="auth-step">
                 <h3>Шаг 2: Юз (логин)</h3>
                 <p>Уникальный ник для поиска.</p>
@@ -194,7 +240,6 @@
                 <button class="btn-primary" onclick="showRegStep(3)">Далее</button>
             </div>
 
-            <!-- Регистрация Шаг 3 -->
             <div id="reg-step-3" class="auth-step">
                 <h3>Шаг 3: Пароль</h3>
                 <p>Придумайте надежный пароль.</p>
@@ -202,7 +247,6 @@
                 <button class="btn-primary" onclick="showRegStep(4)">Далее</button>
             </div>
 
-            <!-- Регистрация Шаг 4 (Аватар) -->
             <div id="reg-step-4" class="auth-step">
                 <h3>Шаг 4: Аватарка</h3>
                 <p>Выберите фото или пропустите.</p>
@@ -223,30 +267,22 @@
 
     <!-- ГЛАВНЫЙ ИНТЕРФЕЙС ПРИЛОЖЕНИЯ -->
     <div id="app-screen">
-        <!-- САЙДБАР (Список) -->
+        <!-- САЙДБАР -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-inner">
                 
-                <!-- Мой профиль -->
-                <div class="my-profile">
+                <!-- Шапка с аватаром и статусом -->
+                <div class="top-bar">
+                    <div class="main-status connecting" id="conn-text">Подключение<span class="animated-dots"></span></div>
                     <div class="avatar-circle" id="my-avatar-display">?</div>
-                    <div class="profile-info">
-                        <div class="profile-name" id="my-name-display">Имя</div>
-                        <div class="profile-user" id="my-user-display">@юз</div>
-                    </div>
-                    <button class="logout-btn" onclick="doLogout()" title="Выйти">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
-                    </button>
                 </div>
 
                 <!-- Поиск -->
-                <div class="connection-status">
-                    <div class="status-dot" id="status-dot"></div>
-                    <span id="conn-text">Подключение...</span>
-                </div>
                 <div class="search-box">
-                    <input type="text" id="friend-input" placeholder="Поиск по юзу (например, alex)" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')">
-                    <button class="btn-add" id="add-friend-btn">Найти</button>
+                    <input type="text" id="friend-input" placeholder="Поиск" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')" onkeypress="if(event.key === 'Enter') addFriend()">
+                    <button class="btn-search" id="add-friend-btn" onclick="addFriend()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
                 </div>
                 <div id="add-status"></div>
 
@@ -254,12 +290,9 @@
             </div>
         </div>
 
-        <!-- ОСНОВНАЯ ЗОНА (Чат/Звонок) -->
+        <!-- ОСНОВНАЯ ЗОНА -->
         <div class="main-area" id="main-area">
-            <div class="empty-state" id="empty-state">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z"/></svg>
-                <p>Выберите друга для общения</p>
-            </div>
+            <div class="empty-state" id="empty-state"></div>
 
             <div class="chat-header">
                 <div class="chat-header-info">
@@ -267,24 +300,26 @@
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
                     </button>
                     <div class="chat-avatar friend-avatar-small" id="chat-avatar-top" style="margin-right:8px;"></div>
-                    <div>
-                        <div class="chat-peer-name" id="chat-title-name">Имя</div>
-                        <div class="chat-peer-user" id="chat-title-user">@юз</div>
-                    </div>
+                    <div class="chat-peer-name" id="chat-title-name">Имя</div>
                 </div>
-                <button class="btn-call" id="btn-call">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
-                    Звонок
+                <button class="btn-call" id="btn-call" title="Позвонить">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 00-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
                 </button>
             </div>
 
             <div class="active-call-area" id="call-area">
                 <div class="call-avatar" id="call-avatar"></div>
                 <div id="call-status">Подключение...</div>
-                <button class="btn-hangup" id="btn-hangup">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15.46L16.28 14c-.38-.11-.79-.01-1.07.28l-2.73 2.73c-3.13-1.63-5.69-4.18-7.31-7.31l2.73-2.73c.29-.29.39-.7.28-1.07L6.73 3.19C6.42 2.27 5.27 2 4.4 2H3.5C2.67 2 2 2.67 2 3.5c0 10.22 8.28 18.5 18.5 18.5.83 0 1.5-.67 1.5-1.5v-.9c0-.87-.27-2.02-1.05-2.61L21 15.46z" transform="rotate(135 12 12)"/></svg>
-                    Завершить
-                </button>
+                
+                <div class="call-controls">
+                    <button class="btn-mute" id="btn-mute" title="Вкл/Выкл микрофон">
+                        <svg id="icon-mic-on" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                        <svg id="icon-mic-off" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                    </button>
+                    <button class="btn-hangup" id="btn-hangup" title="Завершить вызов">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M21 15.46L16.28 14c-.38-.11-.79-.01-1.07.28l-2.73 2.73c-3.13-1.63-5.69-4.18-7.31-7.31l2.73-2.73c.29-.29.39-.7.28-1.07L6.73 3.19C6.42 2.27 5.27 2 4.4 2H3.5C2.67 2 2 2.67 2 3.5c0 10.22 8.28 18.5 18.5 18.5.83 0 1.5-.67 1.5-1.5v-.9c0-.87-.27-2.02-1.05-2.61L21 15.46z" transform="rotate(135 12 12)"/></svg>
+                    </button>
+                </div>
             </div>
 
             <div class="chat-messages" id="chat-messages"></div>
@@ -315,7 +350,7 @@
     <audio id="incoming-ringtone" src="souncall.mp3" loop preload="auto"></audio>
 
     <script>
-        // === 1. ЛОГИКА АВТОРИЗАЦИИ (БЕЗ СЕРВЕРА) ===
+        // === 1. ЛОГИКА АВТОРИЗАЦИИ ===
         let currentUser = JSON.parse(localStorage.getItem('7leaf_user'));
         let selectedAvatar = null;
 
@@ -330,7 +365,6 @@
             }
         }
 
-        // UI Авторизации
         function resetAuth() {
             document.querySelectorAll('.auth-step, .auth-buttons').forEach(el => el.classList.remove('active'));
             document.getElementById('auth-init').classList.add('active');
@@ -348,7 +382,6 @@
             document.getElementById('reg-step-' + step).classList.add('active');
         }
 
-        // Аватарки
         function selectPreset(imgEl) {
             document.querySelectorAll('.avatar-preset').forEach(el => el.classList.remove('selected'));
             imgEl.classList.add('selected');
@@ -365,21 +398,17 @@
             reader.readAsDataURL(file);
         }
 
-        // Завершение регистрации/входа
         function finishReg(skipAvatar = false) {
             const name = document.getElementById('reg-name').value.trim();
             const user = document.getElementById('reg-user').value.trim();
             const pass = document.getElementById('reg-pass').value;
             
             let finalAvatar = selectedAvatar;
-            if (skipAvatar || !finalAvatar) finalAvatar = ""; // Пустая строка = будет 1я буква
+            if (skipAvatar || !finalAvatar) finalAvatar = "";
 
             currentUser = { displayName: name, username: user, password: pass, avatar: finalAvatar };
-            
-            // Сохраняем локально, имитируя БД
             localStorage.setItem('7leaf_user', JSON.stringify(currentUser));
             
-            // Сохраняем "глобально" (только для этого браузера) чтобы работал локальный логин
             let allAccounts = JSON.parse(localStorage.getItem('7leaf_accounts') || '{}');
             allAccounts[user] = currentUser;
             localStorage.setItem('7leaf_accounts', JSON.stringify(allAccounts));
@@ -390,24 +419,17 @@
         function doLogin() {
             const user = document.getElementById('login-user').value.trim();
             const pass = document.getElementById('login-pass').value;
-            
             let allAccounts = JSON.parse(localStorage.getItem('7leaf_accounts') || '{}');
+            
             if (allAccounts[user] && allAccounts[user].password === pass) {
                 currentUser = allAccounts[user];
                 localStorage.setItem('7leaf_user', JSON.stringify(currentUser));
                 checkAuth();
             } else {
-                alert("Неверный юз или пароль! (В этой версии аккаунты сохраняются только в текущем браузере)");
+                alert("Неверный юз или пароль!");
             }
         }
 
-        function doLogout() {
-            localStorage.removeItem('7leaf_user');
-            if(peer) peer.destroy();
-            location.reload();
-        }
-
-        // Вспомогательная функция для рендера аватарки (картинка или буква)
         function renderAvatarHtml(name, avatarStr) {
             if (avatarStr && (avatarStr.startsWith('data:') || avatarStr.startsWith('http'))) {
                 return `<img src="${avatarStr}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
@@ -420,27 +442,31 @@
         let peer = null;
         let localStream = null;
         let currentCall = null;
+        let isMuted = false;
         
-        // Друзья теперь объект: { "username": { displayName, avatar } }
         let friends = JSON.parse(localStorage.getItem('7leaf_friends') || '{}');
         let chatHistory = JSON.parse(localStorage.getItem('7leaf_chats') || '{}');
+        let unreadCounts = JSON.parse(localStorage.getItem('7leaf_unread') || '{}');
         let activeChatId = null;
 
         function setConnStatus(state) {
-            const dot = document.getElementById('status-dot');
             const txt = document.getElementById('conn-text');
-            if (state === 'connecting') { txt.innerText = 'Подключение...'; txt.style.color = '#a1a1aa'; dot.style.background = '#a1a1aa'; }
-            if (state === 'connected') { txt.innerText = '7leaf - подключено'; txt.style.color = '#4ade80'; dot.style.background = '#4ade80'; }
-            if (state === 'error') { txt.innerText = 'Не удалось подключиться'; txt.style.color = '#ef4444'; dot.style.background = '#ef4444'; }
+            txt.className = 'main-status'; // Reset classes
+            
+            if (state === 'connecting') { 
+                txt.innerHTML = 'Подключение<span class="animated-dots"></span>'; 
+                txt.classList.add('connecting');
+            } else if (state === 'connected') { 
+                txt.innerHTML = '7leaf'; 
+            } else if (state === 'error') { 
+                txt.innerHTML = 'Ошибка сети'; 
+                txt.classList.add('error');
+            }
         }
 
         function initApp() {
-            // Настройка профиля UI
-            document.getElementById('my-name-display').innerText = currentUser.displayName;
-            document.getElementById('my-user-display').innerText = '@' + currentUser.username;
             document.getElementById('my-avatar-display').innerHTML = renderAvatarHtml(currentUser.displayName, currentUser.avatar);
 
-            // Инициализация сети, используем username как ID
             setConnStatus('connecting');
             peer = new Peer(currentUser.username, { config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
 
@@ -453,7 +479,6 @@
             peer.on('disconnected', () => { setConnStatus('error'); setTimeout(() => peer.reconnect(), 3000); });
             peer.on('error', err => { setConnStatus('error'); console.error(err); });
 
-            // Обработка входящих соединений
             peer.on('connection', conn => {
                 conn.on('data', data => {
                     if (data.type === 'CHAT') {
@@ -463,7 +488,7 @@
                     }
                     else if (data.type === 'FRIEND_REQ') {
                         playNotify();
-                        showModal("Заявка в друзья", `${data.profile.displayName} (@${data.from}) хочет добавить вас.`, 
+                        showModal("Заявка в друзья", `${data.profile.displayName} хочет добавить вас.`, 
                             () => { 
                                 saveFriendProfile(data.from, data.profile);
                                 sendData(data.from, { type: 'FRIEND_ACC', from: currentUser.username, profile: getMyProfile() });
@@ -473,17 +498,17 @@
                     else if (data.type === 'FRIEND_ACC') {
                         playNotify();
                         saveFriendProfile(data.from, data.profile);
-                        showStatus(`${data.profile.displayName} принял заявку!`, '#4ade80');
+                        showStatus("Заявка принята!", '#4ade80');
                     }
                     else if (data.type === 'CALL_REJ') {
                         stopOutgoingCallTone();
                         document.getElementById('call-status').innerText = "Отклонено";
+                        saveSystemMessage(data.from, "Собеседник отклонил звонок");
                         setTimeout(() => setCallUI(false), 2000);
                     }
                 });
             });
 
-            // Обработка звонков
             peer.on('call', call => {
                 if (currentCall) { call.close(); return; }
                 
@@ -497,10 +522,12 @@
                         call.answer(localStream);
                         openChat(call.peer);
                         setupCall(call);
+                        saveSystemMessage(call.peer, "Входящий звонок");
                     },
                     () => { 
                         stopIncomingRingtone();
-                        sendData(call.peer, { type: 'CALL_REJ' });
+                        sendData(call.peer, { type: 'CALL_REJ', from: currentUser.username });
+                        saveSystemMessage(call.peer, "Пропущенный звонок");
                         call.close();
                     }
                 );
@@ -509,10 +536,7 @@
             renderFriends();
         }
 
-        // --- УПРАВЛЕНИЕ ДАННЫМИ И ПРОФИЛЯМИ ---
-        function getMyProfile() {
-            return { displayName: currentUser.displayName, avatar: currentUser.avatar };
-        }
+        function getMyProfile() { return { displayName: currentUser.displayName, avatar: currentUser.avatar }; }
 
         function saveFriendProfile(username, profileObj) {
             if (!friends[username]) friends[username] = {};
@@ -523,10 +547,7 @@
 
         function sendData(targetUser, dataObj) {
             const conn = peer.connect(targetUser, { reliable: true });
-            conn.on('open', () => {
-                conn.send(dataObj);
-                setTimeout(() => conn.close(), 500);
-            });
+            conn.on('open', () => { conn.send(dataObj); setTimeout(() => conn.close(), 500); });
             conn.on('error', () => showStatus("Абонент не в сети", "#ef4444"));
         }
 
@@ -536,14 +557,18 @@
             listEl.innerHTML = '';
             Object.keys(friends).forEach(username => {
                 const profile = friends[username];
+                const unread = unreadCounts[username] || 0;
                 const li = document.createElement('li');
                 li.className = `friend-item ${activeChatId === username ? 'active' : ''}`;
+                
+                let unreadHtml = unread > 0 ? `<div class="unread-badge">${unread}</div>` : '';
+
                 li.innerHTML = `
                     <div class="friend-avatar-small">${renderAvatarHtml(profile.displayName, profile.avatar)}</div>
                     <div class="friend-item-info">
                         <div class="friend-item-name">${profile.displayName}</div>
-                        <div class="friend-item-user">@${username}</div>
                     </div>
+                    ${unreadHtml}
                 `;
                 li.onclick = () => openChat(username);
                 listEl.appendChild(li);
@@ -561,8 +586,11 @@
             activeChatId = username;
             const profile = friends[username];
             
+            // Сбрасываем счетчик непрочитанных
+            unreadCounts[username] = 0;
+            localStorage.setItem('7leaf_unread', JSON.stringify(unreadCounts));
+
             document.getElementById('chat-title-name').innerText = profile.displayName;
-            document.getElementById('chat-title-user').innerText = '@' + username;
             document.getElementById('chat-avatar-top').innerHTML = renderAvatarHtml(profile.displayName, profile.avatar);
             document.getElementById('call-avatar').innerHTML = renderAvatarHtml(profile.displayName, profile.avatar);
             
@@ -580,8 +608,13 @@
             const msgs = chatHistory[activeChatId] || [];
             msgs.forEach(m => {
                 const div = document.createElement('div');
-                div.className = `msg ${m.from === currentUser.username ? 'out' : 'in'}`;
-                div.innerText = m.text;
+                if (m.type === 'system') {
+                    div.className = 'msg system';
+                    div.innerText = m.text;
+                } else {
+                    div.className = `msg ${m.from === currentUser.username ? 'out' : 'in'}`;
+                    div.innerText = m.text;
+                }
                 box.appendChild(div);
             });
             box.scrollTop = box.scrollHeight;
@@ -589,7 +622,22 @@
 
         function saveMessage(chatId, from, text) {
             if (!chatHistory[chatId]) chatHistory[chatId] = [];
-            chatHistory[chatId].push({ from, text });
+            chatHistory[chatId].push({ from, text, type: 'text' });
+            localStorage.setItem('7leaf_chats', JSON.stringify(chatHistory));
+            
+            if (activeChatId === chatId) {
+                renderMessages();
+            } else if (from !== currentUser.username) {
+                // Если чат не открыт, добавляем бейдж
+                unreadCounts[chatId] = (unreadCounts[chatId] || 0) + 1;
+                localStorage.setItem('7leaf_unread', JSON.stringify(unreadCounts));
+                renderFriends();
+            }
+        }
+
+        function saveSystemMessage(chatId, text) {
+            if (!chatHistory[chatId]) chatHistory[chatId] = [];
+            chatHistory[chatId].push({ text, type: 'system' });
             localStorage.setItem('7leaf_chats', JSON.stringify(chatHistory));
             if (activeChatId === chatId) renderMessages();
         }
@@ -606,24 +654,24 @@
         document.getElementById('btn-send').onclick = sendTextMessage;
         document.getElementById('chat-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendTextMessage(); });
 
-        // Добавление по Юзу
+        // Добавление друзей (Поиск)
         function showStatus(msg, color="#a1a1aa") {
             const el = document.getElementById('add-status');
             el.innerText = msg; el.style.color = color;
             setTimeout(() => el.innerText = "", 4000);
         }
 
-        document.getElementById('add-friend-btn').onclick = () => {
+        function addFriend() {
             const targetUser = document.getElementById('friend-input').value.trim();
             if (!targetUser) return;
-            if (targetUser === currentUser.username) return alert("Нельзя добавить себя!");
-            if (friends[targetUser]) return alert("Пользователь уже в друзьях.");
+            if (targetUser === currentUser.username) return showStatus("Это ваш профиль", "#a1a1aa");
+            if (friends[targetUser]) return showStatus("Уже в контактах", "#a1a1aa");
             
-            showStatus("Отправка...", "#a1a1aa");
+            showStatus("Поиск...", "#a1a1aa");
             sendData(targetUser, { type: 'FRIEND_REQ', from: currentUser.username, profile: getMyProfile() });
-            setTimeout(() => showStatus("Запрос отправлен, если юз онлайн", "#4ade80"), 1000);
+            setTimeout(() => showStatus("Запрос отправлен (если в сети)", "#4ade80"), 1000);
             document.getElementById('friend-input').value = '';
-        };
+        }
 
         // --- ЗВОНКИ ---
         function setCallUI(isActive, isConnecting = false) {
@@ -646,6 +694,9 @@
                 currentCall = null;
                 stopOutgoingCallTone();
                 stopIncomingRingtone();
+                
+                // Сброс мьюта при завершении
+                if (isMuted) toggleMute(); 
             }
         }
 
@@ -656,7 +707,10 @@
                 document.getElementById('remote-audio').srcObject = stream;
                 setCallUI(true, false);
             });
-            call.on('close', () => setCallUI(false));
+            call.on('close', () => {
+                setCallUI(false);
+                saveSystemMessage(call.peer, "Звонок завершен");
+            });
             call.on('error', () => setCallUI(false));
         }
 
@@ -667,12 +721,36 @@
             const call = peer.call(activeChatId, localStream);
             currentCall = call;
             setupCall(call);
+            saveSystemMessage(activeChatId, "Исходящий звонок");
         };
 
         document.getElementById('btn-hangup').onclick = () => {
             if (currentCall) currentCall.close();
             setCallUI(false);
         };
+
+        // Логика Микрофона
+        function toggleMute() {
+            if (!localStream) return;
+            isMuted = !isMuted;
+            localStream.getAudioTracks()[0].enabled = !isMuted;
+            
+            const btn = document.getElementById('btn-mute');
+            const iconOn = document.getElementById('icon-mic-on');
+            const iconOff = document.getElementById('icon-mic-off');
+            
+            if (isMuted) {
+                btn.classList.add('muted');
+                iconOn.style.display = 'none';
+                iconOff.style.display = 'block';
+            } else {
+                btn.classList.remove('muted');
+                iconOn.style.display = 'block';
+                iconOff.style.display = 'none';
+            }
+        }
+        document.getElementById('btn-mute').onclick = toggleMute;
+
 
         // --- МОДАЛКА И ЗВУКИ ---
         const overlay = document.getElementById('modal-overlay');
