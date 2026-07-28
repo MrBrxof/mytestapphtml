@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Браузерные звонки (PeerJS)</title>
+    <!-- Подключаем библиотеку PeerJS -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .code-box {
+            background: #0f3460;
+            padding: 15px;
+            font-size: 24px;
+            letter-spacing: 5px;
+            font-weight: bold;
+            border-radius: 5px;
+            margin: 10px 0;
+            user-select: text;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            font-size: 18px;
+            text-align: center;
+            text-transform: uppercase;
+            border: 2px solid #e94560;
+            border-radius: 5px;
+            background: #fff;
+            color: #000;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s;
+            width: 85%;
+        }
+        button:hover {
+            background: #d83a54;
+        }
+        .video-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 800px;
+        }
+        video {
+            background: #000;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        #status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Твой код для связи:</h2>
+        <div class="code-box" id="my-code">Загрузка...</div>
+        
+        <h2>Подключиться к другу:</h2>
+        <input type="text" id="partner-code" placeholder="КОД ДРУГА" maxlength="6">
+        <button id="connect-btn">Позвонить</button>
+        <div id="status">Ожидание инициализации камеры...</div>
+    </div>
+
+    <div class="video-container">
+        <!-- Твое видео (звук выключен, чтобы не было эха) -->
+        <video id="local-video" autoplay muted playsinline></video>
+        <!-- Видео собеседника -->
+        <video id="remote-video" autoplay playsinline></video>
+    </div>
+
+    <script>
+        // Функция для генерации 6-значного кода (буквы + цифры)
+        function generateUniqueId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let id = '';
+            for (let i = 0; i < 6; i++) {
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return id;
+        }
+
+        const myCode = generateUniqueId();
+        document.getElementById('my-code').innerText = myCode;
+        const statusText = document.getElementById('status');
+
+        // Инициализируем PeerJS с нашим уникальным кодом
+        // PeerJS сам использует свой бесплатный публичный сервер
+        const peer = new Peer(myCode);
+        let localStream;
+
+        const localVideo = document.getElementById('local-video');
+        const remoteVideo = document.getElementById('remote-video');
+
+        // Запрашиваем доступ к камере и микрофону
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                localStream = stream;
+                localVideo.srcObject = stream;
+                statusText.innerText = "Камера работает. Готов к звонкам.";
+            })
+            .catch(err => {
+                console.error('Ошибка доступа к камере:', err);
+                statusText.innerText = "Ошибка: Разрешите доступ к камере и микрофону!";
+            });
+
+        // Слушаем входящие звонки
+        peer.on('call', call => {
+            statusText.innerText = "Входящий звонок... Соединяем!";
+            // Отвечаем на звонок, передавая свой поток данных
+            call.answer(localStream);
+            
+            // Получаем видео от собеседника
+            call.on('stream', remoteStream => {
+                remoteVideo.srcObject = remoteStream;
+                statusText.innerText = "Соединение установлено!";
+            });
+        });
+
+        // Функция для исходящего звонка
+        document.getElementById('connect-btn').addEventListener('click', () => {
+            const partnerCode = document.getElementById('partner-code').value.trim().toUpperCase();
+            
+            if (partnerCode.length !== 6) {
+                alert("Код должен состоять из 6 символов!");
+                return;
+            }
+
+            statusText.innerText = `Звоним ${partnerCode}...`;
+            
+            // Звоним по коду друга
+            const call = peer.call(partnerCode, localStream);
+            
+            call.on('stream', remoteStream => {
+                remoteVideo.srcObject = remoteStream;
+                statusText.innerText = "Соединение установлено!";
+            });
+
+            call.on('error', err => {
+                statusText.innerText = "Ошибка соединения.";
+                console.error(err);
+            });
+        });
+
+        // Обработка ошибок самого PeerJS
+        peer.on('error', err => {
+            console.error(err);
+            statusText.innerText = "Ошибка PeerJS: " + err.type;
+        });
+    </script>
+</body>
+</html>
