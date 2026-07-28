@@ -27,7 +27,6 @@
             max-width: 400px;
         }
         
-        /* Иконка-аватарка вместо камеры */
         .avatar-container {
             width: 120px;
             height: 120px;
@@ -82,7 +81,6 @@
             border-color: #43e97b;
         }
         
-        /* Кнопки */
         .btn-group {
             display: flex;
             justify-content: center;
@@ -113,7 +111,7 @@
         .btn-hangup {
             background: #e94560;
             color: white;
-            display: none; /* Скрыта по умолчанию */
+            display: none;
         }
         .btn-hangup:hover {
             background: #d83a54;
@@ -134,7 +132,6 @@
 <body>
 
     <div class="container">
-        <!-- Аватарка (иконка аналогичная видео) -->
         <div class="avatar-container" id="avatar">
             <svg viewBox="0 0 24 24">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
@@ -160,7 +157,6 @@
         <div id="status">Инициализация микрофона...</div>
     </div>
 
-    <!-- Аудио элемент для звука собеседника -->
     <audio id="remote-audio" autoplay></audio>
 
     <script>
@@ -183,33 +179,46 @@
         const avatar = document.getElementById('avatar');
         const remoteAudio = document.getElementById('remote-audio');
 
-        const peer = new Peer(myCode);
-        let localStream;
-        let currentCall = null; // Переменная для хранения текущего звонка
+        // Добавлены бесплатные STUN серверы Google для пробития Wi-Fi роутеров
+        const peer = new Peer(myCode, {
+            config: {
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' },
+                    { urls: 'stun:stun4.l.google.com:19302' }
+                ]
+            }
+        });
+        
+        let localStream = null;
+        let currentCall = null;
 
-        // Запрашиваем доступ ТОЛЬКО к микрофону
+        // Запрашиваем доступ к микрофону
         navigator.mediaDevices.getUserMedia({ video: false, audio: true })
             .then(stream => {
                 localStream = stream;
-                statusText.innerText = "Микрофон работает. Готов к звонкам.";
+                statusText.innerText = "Микрофон готов. Можно звонить!";
+                statusText.style.color = "#43e97b";
             })
             .catch(err => {
                 console.error('Ошибка доступа к микрофону:', err);
-                statusText.innerText = "Ошибка: Разрешите доступ к микрофону!";
+                statusText.innerText = "Ошибка: Разрешите доступ к микрофону в браузере!";
+                statusText.style.color = "#e94560";
             });
 
-        // Функция изменения интерфейса при звонке
         function setCallState(isCalling) {
             if (isCalling) {
                 connectBtn.style.display = 'none';
                 hangupBtn.style.display = 'flex';
                 partnerInput.disabled = true;
-                avatar.classList.add('active'); // Включаем анимацию пульсации
+                avatar.classList.add('active');
             } else {
                 connectBtn.style.display = 'flex';
                 hangupBtn.style.display = 'none';
                 partnerInput.disabled = false;
-                avatar.classList.remove('active'); // Выключаем пульсацию
+                avatar.classList.remove('active');
                 remoteAudio.srcObject = null;
                 currentCall = null;
             }
@@ -217,34 +226,52 @@
 
         // Обработка ВХОДЯЩЕГО звонка
         peer.on('call', call => {
+            if (!localStream) {
+                statusText.innerText = "Звонок сброшен: нет доступа к микрофону.";
+                call.close();
+                return;
+            }
+
             statusText.innerText = "Входящий звонок... Соединяем!";
+            statusText.style.color = "#fff";
             currentCall = call;
             
-            call.answer(localStream); // Отвечаем своим аудио
+            call.answer(localStream);
             
             call.on('stream', remoteStream => {
                 remoteAudio.srcObject = remoteStream;
                 statusText.innerText = "Разговор начат!";
+                statusText.style.color = "#43e97b";
                 setCallState(true);
             });
 
-            // Если собеседник сбросил звонок
             call.on('close', () => {
                 statusText.innerText = "Собеседник завершил вызов.";
+                statusText.style.color = "#aaa";
                 setCallState(false);
             });
         });
 
         // ИСХОДЯЩИЙ звонок
         connectBtn.addEventListener('click', () => {
+            if (!localStream) {
+                alert("Подождите, микрофон еще не подключен или вы запретили к нему доступ!");
+                return;
+            }
+
             const partnerCode = partnerInput.value.trim().toUpperCase();
             
             if (partnerCode.length !== 6) {
                 alert("Код должен состоять из 6 символов!");
                 return;
             }
+            if (partnerCode === myCode) {
+                alert("Нельзя позвонить самому себе!");
+                return;
+            }
 
-            statusText.innerText = `Звоним ${partnerCode}...`;
+            statusText.innerText = `Звоним абоненту ${partnerCode}...`;
+            statusText.style.color = "#fff";
             
             const call = peer.call(partnerCode, localStream);
             currentCall = call;
@@ -252,16 +279,19 @@
             call.on('stream', remoteStream => {
                 remoteAudio.srcObject = remoteStream;
                 statusText.innerText = "Разговор начат!";
+                statusText.style.color = "#43e97b";
                 setCallState(true);
             });
 
             call.on('close', () => {
                 statusText.innerText = "Вызов завершен.";
+                statusText.style.color = "#aaa";
                 setCallState(false);
             });
 
             call.on('error', err => {
-                statusText.innerText = "Ошибка соединения.";
+                statusText.innerText = "Собеседник не найден или отклонил звонок.";
+                statusText.style.color = "#e94560";
                 setCallState(false);
                 console.error(err);
             });
@@ -270,16 +300,22 @@
         // КНОПКА СБРОСА
         hangupBtn.addEventListener('click', () => {
             if (currentCall) {
-                currentCall.close(); // Закрываем WebRTC соединение
+                currentCall.close();
             }
             statusText.innerText = "Вы сбросили вызов.";
+            statusText.style.color = "#aaa";
             setCallState(false);
         });
 
         // Ошибки PeerJS
         peer.on('error', err => {
             console.error(err);
-            statusText.innerText = "Ошибка: " + err.type;
+            if (err.type === 'peer-unavailable') {
+                statusText.innerText = "Собеседник с таким кодом не найден в сети.";
+            } else {
+                statusText.innerText = "Ошибка: " + err.type;
+            }
+            statusText.style.color = "#e94560";
             setCallState(false);
         });
     </script>
