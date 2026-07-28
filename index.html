@@ -9,65 +9,71 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
         body {
             font-family: 'Inter', sans-serif;
             background-color: #18181b;
             color: #e4e4e7;
             display: flex;
-            height: 100dvh; /* Используем dvh для правильного отображения на мобильных */
+            height: 100dvh; /* dvh решает проблему с клавиатурой на iOS/Android */
+            width: 100vw;
             overflow: hidden;
+            position: fixed;
         }
 
         /* --- ОБЩИЕ ЭЛЕМЕНТЫ УПРАВЛЕНИЯ --- */
         input {
             background: #27272a; border: 1px solid #3f3f46; padding: 14px;
             border-radius: 10px; color: #fff; font-size: 16px; outline: none; transition: 0.2s;
-            width: 100%;
+            width: 100%; min-width: 0;
         }
         input:focus { border-color: #4ade80; }
-        .btn-primary { background: #4ade80; color: #18181b; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 16px; transition: 0.2s; width: 100%;}
+        button { cursor: pointer; font-family: 'Inter', sans-serif; }
+        
+        .btn-primary { background: #4ade80; color: #18181b; border: none; padding: 14px; border-radius: 10px; font-weight: 600; font-size: 16px; transition: 0.2s; width: 100%; flex-shrink: 0;}
         .btn-primary:hover { background: #22c55e; }
-        .btn-secondary { background: transparent; color: #a1a1aa; border: 1px solid #3f3f46; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%;}
+        .btn-secondary { background: transparent; color: #a1a1aa; border: 1px solid #3f3f46; padding: 14px; border-radius: 10px; font-weight: 600; font-size: 16px; transition: 0.2s; width: 100%; flex-shrink: 0;}
         .btn-secondary:hover { background: #27272a; color: #fff; }
 
         /* --- ЭКРАН АВТОРИЗАЦИИ --- */
         #auth-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #18181b; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 50;
-            transition: opacity 0.3s;
-            padding: 20px;
+            align-items: center; justify-content: center; z-index: 1000;
+            transition: opacity 0.3s; padding: 20px;
         }
         .auth-card {
             background: #202024; border: 1px solid #3f3f46; padding: 30px 24px;
             border-radius: 20px; width: 100%; max-width: 400px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto; max-height: 95dvh;
         }
+        .auth-card::-webkit-scrollbar { display: none; }
         .auth-logo { font-size: 32px; font-weight: 700; color: #4ade80; margin-bottom: 24px; letter-spacing: 1px; }
+        
         .auth-buttons, .auth-step { display: none; flex-direction: column; gap: 14px; }
         .auth-step.active, .auth-buttons.active { display: flex; }
+        
         .auth-card h3 { margin-bottom: 6px; font-size: 18px; color: #fff; }
         .auth-card p { margin-bottom: 16px; font-size: 13px; color: #a1a1aa; line-height: 1.4;}
         
         .avatar-options { display: flex; justify-content: center; gap: 12px; margin-bottom: 16px; }
-        .avatar-preset { width: 50px; height: 50px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; object-fit: cover; }
+        .avatar-preset { width: 50px; height: 50px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; object-fit: cover; flex-shrink: 0;}
         .avatar-preset.selected { border-color: #4ade80; }
         #avatar-upload { display: none; }
-        .upload-btn { background: #3f3f46; padding: 10px; border-radius: 8px; font-size: 13px; cursor: pointer; color: #fff; margin-bottom: 10px;}
-        .skip-btn { font-size: 13px; color: #71717a; text-decoration: underline; cursor: pointer; margin-top: 10px; }
+        .upload-btn { background: #3f3f46; padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; color: #fff; margin-bottom: 10px; display: block;}
+        .skip-btn { font-size: 13px; color: #71717a; text-decoration: underline; cursor: pointer; margin-top: 10px; display: inline-block;}
         .auth-link { color: #4ade80; font-size: 14px; cursor: pointer; margin-top: 10px; text-decoration: none; display: inline-block; padding: 8px;}
 
         /* --- ГЛАВНЫЙ ИНТЕРФЕЙС --- */
         #app-screen { display: none; width: 100%; height: 100%; position: relative; }
         
         /* ЛЕВАЯ ПАНЕЛЬ (Список) */
-        .sidebar { width: 340px; background: #202024; border-right: 1px solid #3f3f46; display: flex; flex-direction: column; z-index: 10; transition: 0.3s; flex-shrink: 0; }
+        .sidebar { width: 340px; background: #202024; border-right: 1px solid #3f3f46; display: flex; flex-direction: column; z-index: 10; transition: transform 0.3s ease; flex-shrink: 0; position: relative;}
         .sidebar-inner { padding: 20px; display: flex; flex-direction: column; height: 100%; }
 
-        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-        .main-status { font-size: 22px; font-weight: 700; color: #4ade80; letter-spacing: 0.5px; display: flex; align-items: center; flex: 1; }
+        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-shrink: 0;}
+        .main-status { font-size: 22px; font-weight: 700; color: #4ade80; display: flex; align-items: center; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;}
         .main-status.error { color: #ef4444; font-size: 18px; }
         .main-status.connecting { color: #a1a1aa; font-size: 18px; }
         .animated-dots::after { content: ''; animation: dots 1.5s steps(4, end) infinite; }
@@ -76,12 +82,12 @@
         .avatar-circle { width: 44px; height: 44px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #fff; object-fit: cover; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
         .avatar-circle:hover { box-shadow: 0 0 0 2px #4ade80; }
 
-        .search-box { display: flex; background: #27272a; border: 1px solid #3f3f46; border-radius: 10px; overflow: hidden; margin-bottom: 8px; transition: 0.3s; align-items: center; padding-right: 4px; }
+        .search-box { display: flex; background: #27272a; border: 1px solid #3f3f46; border-radius: 10px; overflow: hidden; margin-bottom: 8px; transition: 0.3s; align-items: center; padding-right: 4px; flex-shrink: 0;}
         .search-box:focus-within { border-color: #4ade80; }
         .search-box input { flex: 1; background: transparent; border: none; padding: 12px 14px; color: #fff; font-size: 14px; outline: none; }
-        .btn-search { background: transparent; color: #a1a1aa; border: none; padding: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; }
+        .btn-search { background: transparent; color: #a1a1aa; border: none; padding: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; }
         .btn-search:hover { color: #4ade80; background: rgba(74, 222, 128, 0.1); }
-        #add-status { font-size: 12px; margin-bottom: 16px; min-height: 15px; color: #a1a1aa; text-align: center; }
+        #add-status { font-size: 12px; margin-bottom: 16px; min-height: 15px; color: #a1a1aa; text-align: center; flex-shrink: 0;}
 
         .friend-list { flex: 1; overflow-y: auto; list-style: none; margin: 0 -8px; padding: 0 8px; }
         .friend-list::-webkit-scrollbar { width: 4px; }
@@ -96,17 +102,20 @@
         .unread-badge { background: #4ade80; color: #18181b; font-size: 11px; font-weight: 700; height: 20px; min-width: 20px; padding: 0 6px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 
         /* ПРАВАЯ ПАНЕЛЬ (Чат/Звонок) */
-        .main-area { flex: 1; display: flex; flex-direction: column; background: #18181b; position: relative; overflow: hidden; min-width: 0; }
-        .empty-state { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: #18181b; display: flex;}
+        .main-area { flex: 1; display: flex; flex-direction: column; background: #18181b; position: relative; overflow: hidden; min-width: 0; transition: transform 0.3s ease;}
+        
+        .empty-state { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; background: #18181b; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #71717a;}
+        .empty-state svg { width: 64px; height: 64px; opacity: 0.2; margin-bottom: 16px;}
 
         .chat-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: #202024; border-bottom: 1px solid #3f3f46; z-index: 10; flex-shrink: 0;}
         .chat-header-info { display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden; }
-        .btn-back { display: none; background: transparent; border: none; color: #a1a1aa; cursor: pointer; padding: 8px; margin-left: -8px; flex-shrink: 0; }
+        .btn-back { display: none; background: transparent; border: none; color: #a1a1aa; padding: 8px; margin-left: -8px; flex-shrink: 0; }
         .chat-peer-name { font-size: 16px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .btn-call { background: transparent; color: #4ade80; border: none; padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
+        .btn-call { background: transparent; color: #4ade80; border: none; padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
         .btn-call:hover { background: rgba(74, 222, 128, 0.1); }
 
+        /* Зона звонка */
         .active-call-area { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; background: radial-gradient(circle at center, #27272a 0%, #18181b 100%); border-bottom: 1px solid #3f3f46; flex-shrink: 0;}
         .active-call-area.visible { display: flex; }
         .call-avatar { width: 90px; height: 90px; border-radius: 50%; border: 2px solid #3f3f46; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; background: #3f3f46; color: #fff; margin-bottom: 16px; transition: 0.3s; object-fit: cover; }
@@ -115,45 +124,47 @@
         #call-status { color: #a1a1aa; margin-bottom: 24px; font-weight: 500; font-size: 14px;}
         
         .call-controls { display: flex; gap: 16px; }
-        .btn-hangup, .btn-mute { color: white; border: none; width: 46px; height: 46px; border-radius: 50%; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-hangup, .btn-mute { color: white; border: none; width: 46px; height: 46px; border-radius: 50%; font-weight: 600; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .btn-hangup { background: #ef4444; }
         .btn-hangup:hover { background: #dc2626; }
         .btn-mute { background: #3f3f46; }
         .btn-mute:hover { background: #52525b; }
         .btn-mute.muted { background: #eab308; color: #18181b; }
 
+        /* Сообщения */
         .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 15px; line-height: 1.4; word-wrap: break-word;}
         .msg.in { background: #27272a; align-self: flex-start; border-bottom-left-radius: 4px; }
         .msg.out { background: #4ade80; color: #18181b; align-self: flex-end; border-bottom-right-radius: 4px; }
         .msg.system { align-self: center; background: rgba(63, 63, 70, 0.5); color: #a1a1aa; font-size: 12px; padding: 6px 16px; border-radius: 16px; text-align: center; max-width: 90%; }
 
+        /* Ввод сообщения */
         .chat-input-area { padding: 12px 20px; background: #202024; border-top: 1px solid #3f3f46; display: flex; gap: 10px; flex-shrink: 0; align-items: center; }
         .chat-input-area input { flex: 1; background: #27272a; border: 1px solid #3f3f46; padding: 12px 14px; border-radius: 8px; color: #fff; font-size: 15px; outline: none; transition: 0.2s; min-width: 0; }
         .chat-input-area input:focus { border-color: #4ade80; }
-        .btn-send { background: #4ade80; border: none; border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; color: #18181b; flex-shrink: 0; }
+        .btn-send { background: #4ade80; border: none; border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; transition: 0.2s; color: #18181b; flex-shrink: 0; }
         .btn-send:hover { background: #22c55e; }
 
         /* --- ВСПЛЫВАЮЩИЕ ПАНЕЛИ (Модальные окна) --- */
         .panel-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
             background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
-            z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s;
         }
         .panel-overlay.visible { opacity: 1; pointer-events: auto; }
         
         .panel {
             background: #202024; border: 1px solid #3f3f46; padding: 0;
             border-radius: 20px; width: 95%; max-width: 400px;
-            transform: scale(0.9); transition: 0.3s; overflow: hidden; display: flex; flex-direction: column;
+            transform: scale(0.9); transition: transform 0.3s; overflow: hidden; display: flex; flex-direction: column;
             max-height: 90dvh;
         }
         .panel-overlay.visible .panel { transform: scale(1); }
         
-        .panel-header { padding: 16px 20px; border-bottom: 1px solid #3f3f46; display: flex; justify-content: space-between; align-items: center; position: relative; }
+        .panel-header { padding: 16px 20px; border-bottom: 1px solid #3f3f46; display: flex; justify-content: space-between; align-items: center; position: relative; flex-shrink: 0;}
         .panel-header h2 { font-size: 18px; color: #fff; margin: 0; }
-        .btn-close { background: none; border: none; color: #a1a1aa; cursor: pointer; padding: 4px; }
-        .btn-dots { background: none; border: none; color: #a1a1aa; cursor: pointer; padding: 4px; }
+        .btn-close { background: none; border: none; color: #a1a1aa; padding: 4px; }
+        .btn-dots { background: none; border: none; color: #a1a1aa; padding: 4px; }
         
         /* Дропдаун профиля */
         .dropdown-menu {
@@ -162,38 +173,38 @@
             display: none; flex-direction: column; z-index: 10; overflow: hidden; min-width: 220px;
         }
         .dropdown-menu.active { display: flex; }
-        .dropdown-item { padding: 12px 16px; color: #fff; cursor: pointer; text-align: left; background: none; border: none; font-size: 14px; width: 100%; transition: 0.2s; white-space: nowrap;}
+        .dropdown-item { padding: 12px 16px; color: #fff; text-align: left; background: none; border: none; font-size: 14px; width: 100%; transition: 0.2s; white-space: nowrap;}
         .dropdown-item:hover { background: #3f3f46; color: #4ade80;}
 
         .panel-content { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         
-        .profile-avatar-large { width: 90px; height: 90px; border-radius: 50%; background: #3f3f46; font-size: 36px; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; object-fit: cover;}
+        .profile-avatar-large { width: 90px; height: 90px; border-radius: 50%; background: #3f3f46; font-size: 36px; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; object-fit: cover; flex-shrink: 0;}
         .profile-name-large { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 4px; text-align: center; }
         .profile-user-large { font-size: 14px; color: #a1a1aa; margin-bottom: 24px; text-align: center; }
 
-        /* Настройки (с иконками) */
         .settings-list { width: 100%; list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;}
-        .settings-item { background: #27272a; padding: 14px 16px; border-radius: 12px; color: #e4e4e7; font-weight: 500; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;}
+        .settings-item { background: #27272a; padding: 14px 16px; border-radius: 12px; color: #e4e4e7; font-weight: 500; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; cursor: pointer;}
         .settings-item:hover { background: #3f3f46; color: #fff; }
         .settings-icon-text { display: flex; align-items: center; gap: 12px; font-size: 14px; }
         .settings-icon-text svg { color: #a1a1aa; transition: 0.2s; }
         .settings-item:hover .settings-icon-text svg { color: #4ade80; }
         
-        .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px;}
+        .btn-logout { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none; padding: 14px; border-radius: 12px; font-weight: 600; width: 100%; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; flex-shrink: 0;}
         .btn-logout:hover { background: #ef4444; color: #fff; }
 
-        /* Авторизация устройства (Улучшенная логика) */
+        /* Блоки авторизации устройств */
         .qr-box { background: #fff; padding: 10px; border-radius: 10px; margin-bottom: 16px; display: inline-block; }
         .code-display { font-size: 32px; font-weight: 700; letter-spacing: 5px; color: #4ade80; margin-bottom: 20px; }
         #qr-reader { width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 16px; display: none; }
+        .scanner-btn { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom:16px;}
 
-        /* Модалка входящего звонка */
-        .modal { background: #27272a; border: 1px solid #3f3f46; padding: 24px; border-radius: 20px; text-align: center; width: 90%; max-width: 320px; transform: scale(0.9); transition: 0.3s; }
-        .overlay.visible .modal { transform: scale(1); }
-        .modal h2 { margin: 0 0 8px 0; font-size: 18px; color: #fff; }
-        .modal p { color: #a1a1aa; margin-bottom: 20px; font-size: 14px; }
+        /* Модалка звонка (Маленькая) */
+        .alert-modal { background: #27272a; border: 1px solid #3f3f46; padding: 24px; border-radius: 20px; text-align: center; width: 90%; max-width: 320px; transform: scale(0.9); transition: 0.3s; }
+        .overlay.visible .alert-modal { transform: scale(1); }
+        .alert-modal h2 { margin: 0 0 8px 0; font-size: 18px; color: #fff; }
+        .alert-modal p { color: #a1a1aa; margin-bottom: 20px; font-size: 14px; }
         .modal-btns { display: flex; gap: 10px; }
-        .modal-btns button { flex: 1; padding: 10px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .modal-btns button { flex: 1; padding: 10px; font-weight: 600; border: none; border-radius: 8px; font-size: 14px; }
         .btn-accept { background: #4ade80; color: #18181b; }
         .btn-reject { background: #ef4444; color: white; }
 
@@ -202,11 +213,10 @@
             .sidebar { width: 100%; position: absolute; height: 100%; top: 0; left: 0; background: #18181b; }
             .sidebar.hidden-mobile { transform: translateX(-100%); }
             
-            .main-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(100%); transition: 0.3s; z-index: 20; }
+            .main-area { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(100%); z-index: 20; }
             .main-area.visible-mobile { transform: translateX(0); }
             
             .btn-back { display: block; }
-            .empty-state { display: none; }
             
             .panel { border-radius: 20px 20px 0 0; position: absolute; bottom: 0; max-width: 100%; width: 100%; transform: translateY(100%); }
             .panel-overlay.visible .panel { transform: translateY(0); }
@@ -246,11 +256,13 @@
                 <h3>Шаг 2: Юз (логин)</h3>
                 <input type="text" id="reg-user" placeholder="Только англ. буквы и цифры" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')">
                 <button class="btn-primary" onclick="showRegStep(3)">Далее</button>
+                <button class="btn-secondary" onclick="showRegStep(1)">Назад</button>
             </div>
             <div id="reg-step-3" class="auth-step">
                 <h3>Шаг 3: Пароль</h3>
                 <input type="password" id="reg-pass" placeholder="Пароль">
                 <button class="btn-primary" onclick="showRegStep(4)">Далее</button>
+                <button class="btn-secondary" onclick="showRegStep(2)">Назад</button>
             </div>
             <div id="reg-step-4" class="auth-step">
                 <h3>Шаг 4: Аватарка</h3>
@@ -282,7 +294,7 @@
 
                 <div class="search-box">
                     <input type="text" id="friend-input" placeholder="Поиск" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '')" onkeypress="if(event.key === 'Enter') addFriend()">
-                    <button class="btn-search" id="add-friend-btn" onclick="addFriend()" title="Найти пользователя">
+                    <button class="btn-search" id="add-friend-btn" onclick="addFriend()" title="Найти">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </button>
                 </div>
@@ -294,11 +306,13 @@
 
         <!-- ОСНОВНАЯ ЗОНА (Справа) -->
         <div class="main-area" id="main-area">
-            <div class="empty-state" id="empty-state"></div>
+            <div class="empty-state" id="empty-state">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z"/></svg>
+            </div>
 
             <div class="chat-header">
                 <div class="chat-header-info">
-                    <button class="btn-back" id="btn-back">
+                    <button class="btn-back" id="btn-back" onclick="closeChatMobile()">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
                     </button>
                     <div class="chat-avatar friend-avatar-small" id="chat-avatar-top" style="margin-right:10px;"></div>
@@ -409,7 +423,7 @@
                 </button>
             </div>
             <div class="panel-content" style="gap: 16px;">
-                <label class="upload-btn" style="margin: 0;">
+                <label class="upload-btn" style="margin: 0; width: 100%; text-align: center;">
                     Загрузить новую аватарку
                     <input type="file" style="display:none;" accept="image/*" onchange="handleEditAvatar(event)">
                 </label>
@@ -431,23 +445,29 @@
             </div>
             <div class="panel-content" style="text-align: center;">
                 
-                <!-- БЛОК ДЛЯ АВТОРИЗОВАННОГО ПОЛЬЗОВАТЕЛЯ (ГЕНЕРАТОР КОДА) -->
+                <!-- БЛОК ГЕНЕРАЦИИ (Для того кто уже вошел) -->
                 <div id="auth-generator-block" style="width: 100%;">
                     <p style="color:#a1a1aa; font-size:14px; margin-bottom:16px;">Отсканируйте код другим устройством или введите цифры:</p>
-                    <div class="qr-box"><img id="device-qr-img" src="" width="160" height="160"></div>
+                    <div class="qr-box"><img id="device-qr-img" src="" width="160" height="160" alt="QR"></div>
                     <div class="code-display" id="device-code-txt">00000</div>
                 </div>
                 
-                <!-- БЛОК ДЛЯ НЕАВТОРИЗОВАННОГО ПОЛЬЗОВАТЕЛЯ (СКАНЕР/ВВОД КОДА) -->
+                <!-- БЛОК СКАНЕРА/ВВОДА (Для того кто входит) -->
                 <div id="auth-scanner-block" style="width: 100%;">
-                    <div id="qr-reader"></div>
-                    <button class="btn-secondary" style="margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="startQRScanner()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
-                        Включить сканер QR
-                    </button>
-                    <p style="color:#a1a1aa; font-size:14px; margin-bottom:10px;">Или введите код, показанный на вашем устройстве:</p>
-                    <input type="text" id="device-auth-input" placeholder="5 цифр" maxlength="5" style="text-align: center; font-size: 22px; letter-spacing: 6px; margin-bottom:16px;">
-                    <button class="btn-primary" onclick="connectDeviceAuth()">Подключить</button>
+                    <div id="qr-reader-container" style="display:none; margin-bottom: 16px;">
+                        <div id="qr-reader"></div>
+                        <button class="btn-secondary" style="margin-top: 10px;" onclick="stopQRScanner()">Отмена</button>
+                    </div>
+                    
+                    <div id="auth-scanner-ui">
+                        <button class="btn-secondary scanner-btn" onclick="startQRScanner()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+                            Включить сканер QR
+                        </button>
+                        <p style="color:#a1a1aa; font-size:14px; margin-bottom:10px;">Или введите код с авторизованного устройства:</p>
+                        <input type="text" id="device-auth-input" placeholder="5 цифр" maxlength="5" style="text-align: center; font-size: 22px; letter-spacing: 6px; margin-bottom:16px;">
+                        <button class="btn-primary" onclick="connectDeviceAuth()">Подключить</button>
+                    </div>
                 </div>
 
                 <div id="device-auth-status" style="margin-top: 16px; font-size: 14px; color: #a1a1aa; min-height: 20px;"></div>
@@ -456,8 +476,8 @@
     </div>
 
     <!-- === МОДАЛКА ЗВОНКОВ/ЗАПРОСОВ === -->
-    <div class="overlay" id="modal-overlay">
-        <div class="modal">
+    <div class="panel-overlay" id="modal-overlay">
+        <div class="alert-modal">
             <h2 id="modal-title">...</h2>
             <p id="modal-desc">...</p>
             <div class="modal-btns">
@@ -527,7 +547,6 @@
             let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
             allAccounts[user] = currentUser;
             localStorage.setItem('fluger_accounts', JSON.stringify(allAccounts));
-
             checkAuth();
         }
 
@@ -535,7 +554,6 @@
             const user = document.getElementById('login-user').value.trim();
             const pass = document.getElementById('login-pass').value;
             let allAccounts = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
-            
             if (allAccounts[user] && allAccounts[user].password === pass) {
                 currentUser = allAccounts[user];
                 localStorage.setItem('fluger_user', JSON.stringify(currentUser));
@@ -615,7 +633,7 @@
             }
         }
 
-        // === РАЗДЕЛЕННАЯ ЛОГИКА АВТОРИЗАЦИИ УСТРОЙСТВА ===
+        // === АВТОРИЗАЦИЯ УСТРОЙСТВА ===
         let authPeer = null;
         let isAuthLoggedIn = false;
         let html5QrCode = null;
@@ -632,24 +650,21 @@
             
             overlay.classList.add('visible');
             statusTxt.innerText = "";
-            
             if(authPeer) { authPeer.destroy(); authPeer = null; }
 
             if (loggedIn) {
-                // МЫ В АККАУНТЕ: Показываем код
-                title.innerText = "Привязать устройство";
+                // Показываем код
+                title.innerText = "Войти на другом устройстве";
                 genBlock.style.display = "block";
                 scanBlock.style.display = "none";
                 
                 const generatedCode = Math.floor(10000 + Math.random() * 90000).toString();
                 document.getElementById('device-code-txt').innerText = generatedCode;
                 document.getElementById('device-qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${generatedCode}&bgcolor=ffffff`;
-                
                 statusTxt.innerText = "Ожидание сканирования...";
                 statusTxt.style.color = "#a1a1aa";
                 
                 authPeer = new Peer('fluger-auth-' + generatedCode, { config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
-                
                 authPeer.on('connection', conn => {
                     conn.on('data', data => {
                         if (data.type === 'AUTH_REQ') {
@@ -661,19 +676,16 @@
                     });
                 });
             } else {
-                // МЫ НЕ В АККАУНТЕ: Показываем сканер/ввод
+                // Сканируем код
                 title.innerText = "Вход через устройство";
                 genBlock.style.display = "none";
                 scanBlock.style.display = "block";
                 document.getElementById('device-auth-input').value = "";
-                
                 authPeer = new Peer({ config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] } });
             }
-            
             if(loggedIn) closeProfilePanel();
         }
 
-        // Подключение со стороны НЕАВТОРИЗОВАННОГО устройства
         function connectDeviceAuth(codeOverride = null) {
             const code = codeOverride || document.getElementById('device-auth-input').value.trim();
             if (code.length !== 5) return alert("Введите 5 цифр!");
@@ -688,7 +700,6 @@
                 conn.send({ type: 'AUTH_REQ' });
                 statusTxt.innerText = "Запрос отправлен, ожидание...";
             });
-            
             conn.on('data', data => {
                 if (data.type === 'AUTH_CREDS') {
                     currentUser = data.creds;
@@ -702,7 +713,6 @@
                     setTimeout(() => { closeDeviceAuthPanel(); checkAuth(); }, 1500);
                 }
             });
-
             conn.on('error', () => { 
                 statusTxt.innerText = "Ошибка подключения (неверный код)"; 
                 statusTxt.style.color = "#ef4444";
@@ -712,29 +722,36 @@
         function closeDeviceAuthPanel() {
             document.getElementById('device-auth-overlay').classList.remove('visible');
             if(authPeer) { authPeer.destroy(); authPeer = null;}
-            if(html5QrCode) { 
-                html5QrCode.stop().catch(e=>{}); 
-                document.getElementById('qr-reader').style.display = 'none'; 
-            }
+            stopQRScanner();
         }
 
-        // Сканер QR
         function startQRScanner() {
-            document.getElementById('qr-reader').style.display = 'block';
+            document.getElementById('auth-scanner-ui').style.display = 'none';
+            document.getElementById('qr-reader-container').style.display = 'block';
             
             html5QrCode = new Html5Qrcode("qr-reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 200, height: 200 } }, 
+            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, 
                 (decodedText) => {
-                    html5QrCode.stop();
-                    document.getElementById('qr-reader').style.display = 'none';
+                    stopQRScanner();
                     document.getElementById('device-auth-input').value = decodedText;
                     connectDeviceAuth(decodedText);
                 },
                 (err) => {}
             ).catch(err => {
                 alert("Ошибка доступа к камере");
-                document.getElementById('qr-reader').style.display = 'none';
+                stopQRScanner();
             });
+        }
+
+        function stopQRScanner() {
+            if(html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                }).catch(e=>{});
+            }
+            document.getElementById('qr-reader-container').style.display = 'none';
+            document.getElementById('auth-scanner-ui').style.display = 'block';
         }
 
         // === ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ (ЧАТЫ И ЗВОНКИ) ===
@@ -869,12 +886,13 @@
             });
         }
 
-        document.getElementById('btn-back').onclick = () => {
+        function closeChatMobile() {
             document.getElementById('sidebar').classList.remove('hidden-mobile');
             document.getElementById('main-area').classList.remove('visible-mobile');
+            document.getElementById('empty-state').style.display = 'flex'; // Восстанавливаем пустое состояние
             activeChatId = null;
             renderFriends();
-        };
+        }
 
         function openChat(username) {
             activeChatId = username;
@@ -1071,7 +1089,6 @@
 
         // ЗАПУСК
         checkAuth();
-
     </script>
 </body>
 </html>
