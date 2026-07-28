@@ -16,12 +16,13 @@
             background-color: #18181b;
             color: #e4e4e7;
             display: flex;
-            height: 100vh; height: 100dvh;
+            height: 100dvh;
             width: 100vw;
             overflow: hidden;
             position: fixed;
         }
 
+        /* --- ОБЩИЕ ЭЛЕМЕНТЫ УПРАВЛЕНИЯ --- */
         input {
             background: #27272a; border: 1px solid #3f3f46; padding: 14px;
             border-radius: 10px; color: #fff; font-size: 16px; outline: none; transition: 0.2s;
@@ -84,17 +85,16 @@
         .search-box { display: flex; background: #27272a; border: 1px solid #3f3f46; border-radius: 10px; overflow: hidden; margin-bottom: 16px; transition: 0.3s; align-items: center; padding-right: 4px; flex-shrink: 0;}
         .search-box:focus-within { border-color: #4ade80; }
         .search-box input { flex: 1; background: transparent; border: none; padding: 12px 14px; color: #fff; font-size: 14px; outline: none; }
-        .btn-search { background: transparent; color: #a1a1aa; border: none; padding: 8px; transition: 0.2s; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; pointer-events: none;}
+        .btn-search { background: transparent; color: #a1a1aa; border: none; padding: 8px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; pointer-events: none;}
 
-        .friend-list, .search-results { flex: 1; overflow-y: auto; list-style: none; margin: 0 -8px; padding: 0 8px; }
-        .friend-list::-webkit-scrollbar, .search-results::-webkit-scrollbar { width: 4px; }
-        .friend-list::-webkit-scrollbar-thumb, .search-results::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        .friend-list { flex: 1; overflow-y: auto; list-style: none; margin: 0 -8px; padding: 0 8px; }
+        .friend-list::-webkit-scrollbar { width: 4px; }
+        .friend-list::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
         
-        .search-results { display: none; }
-
         .friend-item { position: relative; background: #27272a; border: 1px solid #3f3f46; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
         .friend-item:hover { background: #303036; }
         .friend-item.active { border-color: #4ade80; background: #2e3648; }
+        .friend-item.new-chat { border-color: #60a5fa; background: rgba(96, 165, 250, 0.1); justify-content: center; }
         .friend-avatar-small { width: 40px; height: 40px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: #fff; object-fit: cover; flex-shrink: 0; }
         .friend-item-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
         .friend-item-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
@@ -141,8 +141,9 @@
         
         .msg-text { margin-bottom: 2px; }
         .msg-meta { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 11px; opacity: 0.7; margin-top: 2px; }
-        .msg-ticks { font-size: 12px; letter-spacing: -2px; margin-right: 2px;}
-        .msg.out .msg-ticks.read { color: #065f46; } /* Темно-зеленый для галочек на светлом фоне */
+        .msg-ticks { font-size: 13px; font-weight: bold; letter-spacing: -2px; margin-right: 2px;}
+        .msg.out .msg-ticks.pending { color: #18181b; opacity: 0.5; font-size: 11px; letter-spacing: 0;}
+        .msg.out .msg-ticks.read { color: #065f46; } 
         
         .msg-reactions { display: flex; gap: 4px; margin-top: -8px; z-index: 2; flex-wrap: wrap; margin-bottom: 4px;}
         .msg-reactions.in { align-self: flex-start; margin-left: 10px; }
@@ -246,6 +247,16 @@
         .forward-item { display: flex; align-items: center; gap: 12px; background: #27272a; padding: 12px; border-radius: 12px; cursor: pointer; }
         .forward-item:hover { background: #3f3f46; }
 
+        /* Модалка звонка (Маленькая) */
+        .alert-modal { background: #27272a; border: 1px solid #3f3f46; padding: 24px; border-radius: 20px; text-align: center; width: 90%; max-width: 320px; transform: scale(0.9); transition: 0.3s; }
+        .overlay.visible .alert-modal { transform: scale(1); }
+        .alert-modal h2 { margin: 0 0 8px 0; font-size: 18px; color: #fff; }
+        .alert-modal p { color: #a1a1aa; margin-bottom: 20px; font-size: 14px; }
+        .modal-btns { display: flex; gap: 10px; }
+        .modal-btns button { flex: 1; padding: 10px; font-weight: 600; border: none; border-radius: 8px; font-size: 14px; }
+        .btn-accept { background: #4ade80; color: #18181b; }
+        .btn-reject { background: #ef4444; color: white; }
+
         /* --- АДАПТИВНОСТЬ ДЛЯ ТЕЛЕФОНОВ --- */
         @media (max-width: 768px) {
             .sidebar { width: 100%; display: flex; }
@@ -255,7 +266,6 @@
             .main-area.visible-mobile { display: flex !important; }
             
             .btn-back { display: block; }
-            .empty-state { display: none !important; }
             
             .panel { border-radius: 20px 20px 0 0; position: absolute; bottom: 0; max-width: 100%; width: 100%; transform: translateY(100%); }
             .panel-overlay.visible .panel { transform: translateY(0); }
@@ -283,7 +293,6 @@
                 <button class="btn-secondary" onclick="resetAuth()">Назад</button>
             </div>
 
-            <!-- Шаги регистрации -->
             <div id="reg-step-1" class="auth-step">
                 <h3>Шаг 1: Имя</h3>
                 <p>Как вас будут видеть друзья?</p>
@@ -332,14 +341,13 @@
                 </div>
 
                 <div class="search-box">
-                    <input type="text" id="friend-input" placeholder="Поиск" oninput="handleSearch(event)">
+                    <input type="text" id="friend-input" placeholder="Поиск (введите юз)" oninput="handleSearch(event)">
                     <div class="btn-search">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </div>
                 </div>
 
                 <ul class="friend-list" id="friend-list"></ul>
-                <ul class="search-results" id="search-results"></ul>
             </div>
         </div>
 
@@ -493,7 +501,7 @@
                 </button>
             </div>
             <div class="panel-content" style="padding: 0; background: #18181b; overflow-y: auto;" id="devices-list">
-                <!-- Список устройств -->
+                <!-- Список устройств будет тут -->
             </div>
         </div>
     </div>
@@ -508,6 +516,7 @@
                 </button>
             </div>
             <div class="panel-content" style="text-align: center;">
+                
                 <div id="auth-generator-block" style="width: 100%;">
                     <p style="color:#a1a1aa; font-size:14px; margin-bottom:16px;">Отсканируйте код другим устройством или введите цифры. Ваша история чатов будет синхронизирована!</p>
                     <div class="qr-box"><img id="device-qr-img" src="" width="160" height="160" alt="QR"></div>
@@ -519,6 +528,7 @@
                         <div id="qr-reader"></div>
                         <button class="btn-secondary" style="margin-top: 10px;" onclick="stopQRScanner()">Отмена сканирования</button>
                     </div>
+                    
                     <div id="auth-scanner-ui">
                         <button class="btn-secondary scanner-btn" onclick="startQRScanner()">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
@@ -529,6 +539,7 @@
                         <button class="btn-primary" onclick="connectDeviceAuth()">Подключить</button>
                     </div>
                 </div>
+
                 <div id="device-auth-status" style="margin-top: 16px; font-size: 14px; color: #a1a1aa; min-height: 20px;"></div>
             </div>
         </div>
@@ -537,28 +548,20 @@
     <!-- === МЕНЮ СООБЩЕНИЯ (РЕАКЦИИ И ДЕЙСТВИЯ) === -->
     <div class="panel-overlay" id="msg-menu-overlay">
         <div class="panel" id="msg-menu-panel">
-            <div class="reactions-container" id="quick-reactions">
-                <!-- Заполняется JS -->
-            </div>
-            <div class="all-reactions-grid" id="all-reactions">
-                <!-- Заполняется JS -->
-            </div>
+            <div class="reactions-container" id="quick-reactions"></div>
+            <div class="all-reactions-grid" id="all-reactions"></div>
             <div style="display: flex; flex-direction: column;">
                 <button class="msg-action-btn" onclick="copyMsgAction()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    Копировать
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Копировать
                 </button>
                 <button class="msg-action-btn" id="btn-edit-msg" onclick="editMsgAction()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    Изменить
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Изменить
                 </button>
                 <button class="msg-action-btn" onclick="openForwardMenu()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
-                    Переслать
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg> Переслать
                 </button>
                 <button class="msg-action-btn danger" id="btn-del-msg" onclick="deleteMsgAction()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    Удалить
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> Удалить
                 </button>
             </div>
         </div>
@@ -569,12 +572,24 @@
         <div class="panel">
             <div class="panel-header">
                 <h2>Переслать кому</h2>
-                <button class="btn-close" onclick="closeForwardMenu()">✖</button>
+                <button class="btn-close" onclick="closeForwardMenu()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
             </div>
             <div class="panel-content" style="padding: 16px;">
-                <div class="forward-list" id="forward-list">
-                    <!-- Заполняется JS -->
-                </div>
+                <div class="forward-list" id="forward-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛКА ЗВОНКОВ/ЗАПРОСОВ -->
+    <div class="panel-overlay" id="modal-overlay">
+        <div class="alert-modal">
+            <h2 id="modal-title">...</h2>
+            <p id="modal-desc">...</p>
+            <div class="modal-btns">
+                <button class="btn-reject" id="modal-reject">Отклонить</button>
+                <button class="btn-accept" id="modal-accept">Принять</button>
             </div>
         </div>
     </div>
@@ -762,17 +777,19 @@
         function closeDeviceAuthPanel() { document.getElementById('device-auth-overlay').classList.remove('visible'); if(authPeer) { authPeer.destroy(); authPeer = null;} stopQRScanner(); }
         function startQRScanner() {
             document.getElementById('auth-scanner-ui').style.display = 'none'; document.getElementById('qr-reader-container').style.display = 'block';
-            html5QrCode = new Html5Qrcode("qr-reader");
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, 
-                (decodedText) => { stopQRScanner(); document.getElementById('device-auth-input').value = decodedText; connectDeviceAuth(decodedText); }, (err) => {}
-            ).catch(err => { alert("Камера недоступна"); stopQRScanner(); });
+            setTimeout(() => {
+                html5QrCode = new Html5Qrcode("qr-reader");
+                html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, 
+                    (decodedText) => { stopQRScanner(); document.getElementById('device-auth-input').value = decodedText; connectDeviceAuth(decodedText); }, (err) => {}
+                ).catch(err => { alert("Камера недоступна"); stopQRScanner(); });
+            }, 100);
         }
         function stopQRScanner() {
             if(html5QrCode) { html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode = null; }).catch(e=>{}); }
             document.getElementById('qr-reader-container').style.display = 'none'; document.getElementById('auth-scanner-ui').style.display = 'block';
         }
 
-        // === ОСНОВНАЯ ЛОГИКА (ЧАТЫ И ЗВОНКИ) ===
+        // === ОСНОВНАЯ ЛОГИКА (ЧАТЫ И ЗВОНКИ И ОФФЛАЙН ОЧЕРЕДЬ) ===
         let peer = null; let localStream = null; let currentCall = null; let isMuted = false;
         let friends = JSON.parse(localStorage.getItem('fluger_friends') || '{}');
         let chatHistory = JSON.parse(localStorage.getItem('fluger_chats') || '{}');
@@ -804,14 +821,28 @@
                 conn.on('data', data => {
                     if (data.type === 'CHAT') {
                         playNotify(); saveFriendProfile(data.from, data.profile);
-                        saveMessage(data.msgId, data.from, data.from, data.text, data.timestamp);
+                        saveMessage(data.msgId, data.from, data.from, data.text, data.timestamp, 'sent');
+                        // Сразу отправляем отчет о доставке
+                        sendData(data.from, { type: 'DELIVERED_ACK', msgIds: [data.msgId] });
+                        
                         if (activeChatId === data.from) {
                             sendData(data.from, { type: 'READ_RECEIPT', from: currentUser.username });
                         }
                     }
-                    else if (data.type === 'READ_RECEIPT') {
+                    else if (data.type === 'DELIVERED_ACK') {
+                        // Меняем 🕐 на ✓
                         const msgs = chatHistory[data.from] || [];
-                        msgs.forEach(m => { if (m.from === currentUser.username) m.status = 'read'; });
+                        data.msgIds.forEach(id => {
+                            const m = msgs.find(x => x.id === id);
+                            if (m && m.status === 'pending') m.status = 'sent';
+                        });
+                        localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
+                        if (activeChatId === data.from) renderMessages();
+                    }
+                    else if (data.type === 'READ_RECEIPT') {
+                        // Меняем ✓ на ✓✓
+                        const msgs = chatHistory[data.from] || [];
+                        msgs.forEach(m => { if (m.from === currentUser.username && (m.status === 'sent' || m.status === 'pending')) m.status = 'read'; });
                         localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
                         if (activeChatId === data.from) renderMessages();
                     }
@@ -855,6 +886,23 @@
             renderFriends();
         }
 
+        // Оффлайн очередь сообщений (каждые 10 сек пытается отправить 🕐)
+        setInterval(() => {
+            if(!currentUser) return;
+            Object.keys(chatHistory).forEach(chatId => {
+                const pendingMsgs = chatHistory[chatId].filter(m => m.status === 'pending' && m.from === currentUser.username);
+                if (pendingMsgs.length > 0 && peer && !peer.disconnected) {
+                    const conn = peer.connect(chatId, { reliable: true });
+                    conn.on('open', () => {
+                        pendingMsgs.forEach(msg => {
+                            conn.send({ type: 'CHAT', msgId: msg.id, text: msg.text, from: currentUser.username, profile: getMyProfile(), timestamp: msg.timestamp });
+                        });
+                        setTimeout(() => conn.close(), 1000);
+                    });
+                }
+            });
+        }, 10000);
+
         function getMyProfile() { return { displayName: currentUser.displayName, avatar: currentUser.avatar }; }
         function saveFriendProfile(username, profileObj) { if (!friends[username]) friends[username] = {}; friends[username] = profileObj; localStorage.setItem('fluger_friends', JSON.stringify(friends)); renderFriends(); }
         function sendData(targetUser, dataObj) {
@@ -866,36 +914,39 @@
         // ПОИСК И ЧАТЫ
         function handleSearch(e) {
             const query = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '');
-            const list = document.getElementById('friend-list');
-            const searchRes = document.getElementById('search-results');
+            const listEl = document.getElementById('friend-list');
+            listEl.innerHTML = '';
             
-            if (!query) { list.style.display = 'block'; searchRes.style.display = 'none'; return; }
-            list.style.display = 'none'; searchRes.style.display = 'block'; searchRes.innerHTML = '';
-            
-            const allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
-            let found = false;
-            Object.keys(allAccs).forEach(user => {
-                if (user !== currentUser.username && user.includes(query)) {
-                    found = true;
-                    const p = allAccs[user];
-                    searchRes.innerHTML += `
-                        <li class="friend-item" onclick="startChatFromSearch('${user}')">
-                            <div class="friend-avatar-small">${renderAvatarHtml(p.displayName, p.avatar)}</div>
-                            <div class="friend-item-info"><div class="friend-item-name">${p.displayName}</div><div class="friend-item-user">@${user}</div></div>
-                        </li>
-                    `;
+            let foundInFriends = false;
+            Object.keys(friends).forEach(username => {
+                if (username.includes(query) || friends[username].displayName.toLowerCase().includes(query)) {
+                    foundInFriends = true;
+                    const profile = friends[username];
+                    const unread = unreadCounts[username] || 0;
+                    listEl.innerHTML += `
+                        <li class="friend-item" onclick="openChat('${username}')">
+                            <div class="friend-avatar-small">${renderAvatarHtml(profile.displayName, profile.avatar)}</div>
+                            <div class="friend-item-info"><div class="friend-item-name">${profile.displayName}</div></div>
+                            ${unread > 0 ? `<div class="unread-badge">${unread}</div>` : ''}
+                        </li>`;
                 }
             });
-            if(!found) searchRes.innerHTML = `<div style="text-align:center; color:#a1a1aa; padding: 20px; font-size:14px;">Ничего не найдено</div>`;
+
+            // Если ввели что-то, предлагаем написать новому юзеру
+            if (query && !friends[query]) {
+                listEl.innerHTML += `
+                    <li class="friend-item new-chat" onclick="startNewChat('${query}')">
+                        <span style="color:#60a5fa; font-weight:600;">Написать @${query}</span>
+                    </li>`;
+            } else if (!foundInFriends && !query) {
+                renderFriends(); 
+            }
         }
 
-        function startChatFromSearch(username) {
+        function startNewChat(username) {
+            if(username === currentUser.username) return alert("Это вы!");
+            saveFriendProfile(username, { displayName: username, avatar: '' });
             document.getElementById('friend-input').value = '';
-            document.getElementById('friend-list').style.display = 'block';
-            document.getElementById('search-results').style.display = 'none';
-            
-            const allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
-            if (allAccs[username]) saveFriendProfile(username, { displayName: allAccs[username].displayName, avatar: allAccs[username].avatar });
             openChat(username);
         }
 
@@ -928,9 +979,7 @@
             document.getElementById('sidebar').classList.add('hidden-mobile');
             document.getElementById('main-area').classList.add('visible-mobile');
             
-            // Отправляем READ_RECEIPT
             sendData(username, { type: 'READ_RECEIPT', from: currentUser.username });
-            
             renderFriends(); renderMessages();
         }
 
@@ -944,7 +993,13 @@
                 } else {
                     w.className = `msg-wrapper ${m.from === currentUser.username ? 'out' : 'in'}`;
                     
-                    const ticks = m.from === currentUser.username ? (m.status === 'read' ? '<span class="msg-ticks read">✓✓</span>' : '<span class="msg-ticks">✓</span>') : '';
+                    let ticks = '';
+                    if (m.from === currentUser.username) {
+                        if (m.status === 'pending') ticks = '<span class="msg-ticks pending">🕐</span>';
+                        else if (m.status === 'sent') ticks = '<span class="msg-ticks sent">✓</span>';
+                        else if (m.status === 'read') ticks = '<span class="msg-ticks read">✓✓</span>';
+                    }
+
                     const edited = m.edited ? 'изм. ' : '';
                     let reactsHtml = '';
                     if (m.reactions && m.reactions.length > 0) {
@@ -966,9 +1021,9 @@
             box.scrollTop = box.scrollHeight;
         }
 
-        function saveMessage(msgId, chatId, from, text, timestamp) {
+        function saveMessage(msgId, chatId, from, text, timestamp, status = 'pending') {
             if (!chatHistory[chatId]) chatHistory[chatId] = [];
-            chatHistory[chatId].push({ id: msgId, from: from, text: text, timestamp: timestamp, status: 'sent', type: 'text', edited: false, reactions: [] });
+            chatHistory[chatId].push({ id: msgId, from: from, text: text, timestamp: timestamp, status: status, type: 'text', edited: false, reactions: [] });
             localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
             if (activeChatId === chatId) renderMessages();
             else if (from !== currentUser.username) {
@@ -990,7 +1045,6 @@
             if (!text || !activeChatId) return;
             
             if (editingMsgId) {
-                // Edit
                 const msgs = chatHistory[activeChatId];
                 const m = msgs.find(x => x.id === editingMsgId);
                 if(m) {
@@ -1000,10 +1054,9 @@
                 }
                 cancelEdit(); renderMessages();
             } else {
-                // New
                 const msgId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
                 const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                saveMessage(msgId, activeChatId, currentUser.username, text, time);
+                saveMessage(msgId, activeChatId, currentUser.username, text, time, 'pending');
                 sendData(activeChatId, { type: 'CHAT', msgId: msgId, text: text, from: currentUser.username, profile: getMyProfile(), timestamp: time });
             }
             input.value = '';
@@ -1086,7 +1139,7 @@
             
             const msgId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
             const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            saveMessage(msgId, targetUsername, currentUser.username, textToForward, time);
+            saveMessage(msgId, targetUsername, currentUser.username, textToForward, time, 'pending');
             sendData(targetUsername, { type: 'CHAT', msgId: msgId, text: textToForward, from: currentUser.username, profile: getMyProfile(), timestamp: time });
             
             closeForwardMenu();
