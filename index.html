@@ -394,14 +394,15 @@
         </div>
     </div>
 
+    <!-- АУДИО ЭЛЕМЕНТЫ -->
     <audio id="remote-audio" autoplay></audio>
+    <audio id="incoming-ringtone" src="souncall.mp3" loop preload="auto"></audio> <!-- ТВОЙ ЗВУК ЗВОНКА -->
 
     <script>
-        // === 1. ГЕНЕРАЦИЯ ЗВУКОВ (Web Audio API) ===
+        // === 1. ГЕНЕРАЦИЯ ОСТАЛЬНЫХ ЗВУКОВ (Уведомления и Гудки) ===
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
-        // Разблокировка аудио контекста по клику (правила браузеров)
         document.body.addEventListener('click', () => {
             if (audioCtx.state === 'suspended') audioCtx.resume();
         }, { once: true });
@@ -420,23 +421,24 @@
             osc.stop(audioCtx.currentTime + duration);
         }
 
-        let ringInterval, callToneInterval;
+        let callToneInterval;
+        const incomingAudioElement = document.getElementById('incoming-ringtone'); // Ссылка на твой mp3 файл
 
         function playNotify() {
             playTone(600, 'sine', 0.1, 0.2);
             setTimeout(() => playTone(800, 'sine', 0.2, 0.2), 150);
         }
 
+        // Включение mp3 файла при входящем звонке
         function startIncomingRingtone() {
-            if (ringInterval) return;
-            const ring = () => {
-                playTone(400, 'square', 0.4, 0.05);
-                setTimeout(() => playTone(400, 'square', 0.4, 0.05), 500);
-            };
-            ring();
-            ringInterval = setInterval(ring, 2000);
+            incomingAudioElement.play().catch(e => console.log("Автовоспроизведение аудио заблокировано браузером до первого клика", e));
         }
-        function stopIncomingRingtone() { clearInterval(ringInterval); ringInterval = null; }
+
+        // Выключение mp3 файла
+        function stopIncomingRingtone() {
+            incomingAudioElement.pause();
+            incomingAudioElement.currentTime = 0; // Сбрасываем в начало
+        }
 
         function startOutgoingCallTone() {
             if (callToneInterval) return;
@@ -447,7 +449,7 @@
         function stopOutgoingCallTone() { clearInterval(callToneInterval); callToneInterval = null; }
 
 
-        // === 2. ИНИЦИАЛИЗАЦИЯ ===
+        // === 2. ИНИЦИАЛИЗАЦИЯ PEERJS ===
         function generateUniqueId() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let id = '';
@@ -522,7 +524,6 @@
             document.getElementById('chat-title').innerText = id;
             emptyState.style.display = 'none';
             
-            // Адаптив для телефонов (сдвигаем панели)
             sidebar.classList.add('hidden-mobile');
             mainArea.classList.add('visible-mobile');
             
@@ -558,7 +559,6 @@
             });
         }
 
-        // Отправка текстового сообщения
         function sendTextMessage() {
             const text = chatInput.value.trim();
             if (!text || !activeChatId) return;
@@ -570,7 +570,6 @@
         document.getElementById('btn-send').onclick = sendTextMessage;
         chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendTextMessage(); });
 
-        // Добавление в друзья
         document.getElementById('add-friend-btn').onclick = () => {
             const targetId = document.getElementById('friend-input').value.trim().toUpperCase();
             if (targetId.length !== 6 || targetId === myCode || friends.includes(targetId)) return;
@@ -580,7 +579,6 @@
             setTimeout(() => document.getElementById('add-status').innerText = "Запрос отправлен", 1000);
         };
 
-        // Прием данных
         peer.on('connection', conn => {
             conn.on('data', data => {
                 if (data.type === 'CHAT') {
@@ -661,7 +659,6 @@
             call.on('error', () => setCallUI(false));
         }
 
-        // Исходящий
         document.getElementById('btn-call').onclick = () => {
             if (!activeChatId || currentCall || !localStream) return;
             startOutgoingCallTone();
@@ -671,7 +668,6 @@
             setupCall(call);
         };
 
-        // Входящий
         peer.on('call', call => {
             if (currentCall) { call.close(); return; }
             
