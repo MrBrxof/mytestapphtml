@@ -2033,7 +2033,7 @@
 
     <script>
         // ============================================================
-        //  ПОЛНОСТЬЮ ОБНОВЛЁННЫЙ КОД — Fluger v2
+        //  ПОЛНОСТЬЮ ОБНОВЛЁННЫЙ КОД — Fluger v2 (с исправлением звонков)
         // ============================================================
 
         // --- ХРАНИЛИЩЕ ---
@@ -2364,7 +2364,9 @@
             document.getElementById('qr-reader').innerHTML = '';
         }
 
-        // --- ОСНОВНАЯ ЛОГИКА ---
+        // ============================================================
+        //  ОСНОВНАЯ ЛОГИКА (исправлены звонки)
+        // ============================================================
         function initApp() {
             document.getElementById('my-avatar-display').innerHTML = renderAvatarHtml(currentUser.displayName, currentUser
                 .avatar);
@@ -2383,84 +2385,48 @@
                 setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 5000);
             });
 
-            peer.on('connection', conn => {
-                if (blockedUsers.includes(conn.peer)) { setTimeout(() => conn.close(), 100); return; }
-
-                conn.on('data', data => {
-                    if (data.from && blockedUsers.includes(data.from)) return;
-
-                    if (data.type === 'CHAT') {
-                        playNotify();
-                        saveFriendProfile(data.from, data.profile);
-                        saveMessage(data.msgId, data.from, data.from, data.text, data.timestamp, 'sent');
-                        sendData(data.from, { type: 'DELIVERED_ACK', msgIds: [data.msgId], profile: getMyProfile() });
-                        if (activeChatId === data.from) sendData(data.from, { type: 'READ_RECEIPT',
-                            from: currentUser.username });
-                    } else if (data.type === 'DELIVERED_ACK') {
-                        if (data.profile) saveFriendProfile(data.from, data.profile);
-                        const msgs = chatHistory[data.from] || [];
-                        data.msgIds.forEach(id => {
-                            const m = msgs.find(x => x.id === id);
-                            if (m && m.status === 'pending') m.status = 'sent';
-                        });
-                        localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
-                        if (activeChatId === data.from) renderMessages();
-                    } else if (data.type === 'READ_RECEIPT') {
-                        const msgs = chatHistory[data.from] || [];
-                        msgs.forEach(m => { if (m.from === currentUser.username && (m.status === 'sent' || m.status ===
-                                'pending')) m.status = 'read'; });
-                        localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
-                        if (activeChatId === data.from) renderMessages();
-                    } else if (data.type === 'EDIT_MSG') {
-                        const msgs = chatHistory[data.from];
-                        if (msgs) {
-                            const m = msgs.find(x => x.id === data.msgId);
-                            if (m) { m.text = data.text;
-                                m.edited = true;
-                                localStorage.setItem('fluger_chats', JSON.stringify(chatHistory)); if (activeChatId ===
-                                    data.from) renderMessages(); }
-                        }
-                    } else if (data.type === 'DEL_MSG') {
-                        const msgs = chatHistory[data.from];
-                        if (msgs) {
-                            chatHistory[data.from] = msgs.filter(x => x.id !== data.msgId);
-                            localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
-                            if (activeChatId === data.from) renderMessages();
-                        }
-                    } else if (data.type === 'REACT_MSG') {
-                        const msgs = chatHistory[data.from];
-                        if (msgs) {
-                            const m = msgs.find(x => x.id === data.msgId);
-                            if (m) {
-                                if (!m.reactions) m.reactions = [];
-                                m.reactions.push(data.emoji);
-                                localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
-                                if (activeChatId === data.from) renderMessages();
-                            }
-                        }
-                    } else if (data.type === 'CALL_REJ') {
-                        stopOutgoingCallTone();
-                        document.getElementById('call-status-text').innerText = "Отклонено";
-                        saveSystemMessage(data.from, "Собеседник отклонил звонок");
-                        setTimeout(() => hideCallUI(), 2000);
-                    }
-                });
-            });
-
+            // ===== ВХОДЯЩИЙ ЗВОНОК (ИСПРАВЛЕН) =====
             peer.on('call', call => {
                 if (blockedUsers.includes(call.peer)) { call.close(); return; }
                 if (currentCall) { call.close(); return; }
                 startIncomingRingtone();
                 const callerProfile = friends[call.peer] || { displayName: call.peer, avatar: "" };
                 showModal("Входящий звонок", `Звонит: ${callerProfile.displayName}`,
-                    () => {
+                    // Принять
+                    async () => {
                         stopIncomingRingtone();
+                        try {
+                            // Запрашиваем медиа (аудио + видео) для ответа
+                            const stream = await navigator.mediaDevices.getUserMedia({ video: true,
+                                audio: true });
+                            callStream = stream;
+                        } catch (e) {
+                            try {
+                                const stream = await navigator.mediaDevices.getUserMedia({ video: false,
+                                    audio: true });
+                                callStream = stream;
+                            } catch (e2) {
+                                alert("Не удалось получить доступ к медиа");
+                                return;
+                            }
+                        }
                         currentCall = call;
-                        call.answer(localStream);
+                        call.answer(callStream);
                         openChat(call.peer);
+                        const profile = friends[call.peer] || { displayName: call.peer, avatar: "" };
+                        // Показываем интерфейс звонка у принимающей стороны
+                        showCallUI(profile.displayName, "Соединение...", callStream.getVideoTracks().length > 0);
+                        if (callStream.getVideoTracks().length > 0) {
+                            document.getElementById('local-video').srcObject = callStream;
+                            document.getElementById('btn-cam-call').classList.add('active-cam');
+                            isCamOn = true;
+                        } else {
+                            isCamOn = false;
+                        }
                         setupCallUI(call);
                         saveSystemMessage(call.peer, "Входящий звонок");
                     },
+                    // Отклонить
                     () => {
                         stopIncomingRingtone();
                         sendData(call.peer, { type: 'CALL_REJ', from: currentUser.username });
@@ -2535,7 +2501,6 @@
                 let found = 0;
                 const allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
 
-                // Сначала показываем друзей
                 Object.keys(friends).forEach(username => {
                     const profile = friends[username];
                     const nameMatch = profile.displayName.toLowerCase().includes(q);
@@ -2559,7 +2524,6 @@
                     }
                 });
 
-                // Затем показываем не-друзей
                 Object.keys(allAccs).forEach(user => {
                     if (user !== currentUser.username && !friends[user]) {
                         const p = allAccs[user];
@@ -2899,7 +2863,7 @@
         }
 
         // ============================================================
-        //  ЗВОНКИ (ПОЛНОЭКРАННЫЕ, С ВИДЕО)
+        //  ЗВОНКИ (ПОЛНОЭКРАННЫЕ, С ВИДЕО) - ИСПРАВЛЕНЫ
         // ============================================================
         let callStream = null; // полный стрим (аудио+видео)
 
@@ -2911,7 +2875,6 @@
             const fallback = document.getElementById('call-avatar-fallback');
             const profile = friends[activeChatId] || { displayName: peerName, avatar: '' };
             fallback.innerHTML = profile.displayName ? profile.displayName.charAt(0).toUpperCase() : '👤';
-            // Если есть видео, показываем его, иначе — аватар
             if (showVideo) {
                 document.getElementById('remote-video').style.display = 'block';
                 fallback.style.display = 'none';
@@ -2937,7 +2900,6 @@
             if (callStream) { callStream.getTracks().forEach(t => t.stop());
                 callStream = null; }
             if (localStream) {
-                // Перезапрашиваем только аудио для чата
                 navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then(stream => {
                     localStream = stream;
                 }).catch(e => console.log(e));
@@ -2975,16 +2937,14 @@
             call.on('error', () => hideCallUI());
         }
 
-        // Кнопка звонка
+        // Кнопка звонка (исходящий)
         document.getElementById('btn-call').onclick = async () => {
             if (!activeChatId || currentCall || !localStream) return;
             if (peer.disconnected && !peer.destroyed) peer.reconnect();
 
-            // Получаем полный стрим (аудио + видео) для звонка
             try {
                 callStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             } catch (e) {
-                // Если камера не доступна, только аудио
                 try { callStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true }); } catch (
                 e2) { alert("Не удалось получить доступ к медиа"); return; }
             }
@@ -2993,7 +2953,6 @@
             showCallUI(profile.displayName, "Идут гудки...", callStream.getVideoTracks().length > 0);
             startOutgoingCallTone();
 
-            // Обновляем локальное видео
             if (callStream.getVideoTracks().length > 0) {
                 document.getElementById('local-video').srcObject = callStream;
                 document.getElementById('btn-cam-call').classList.add('active-cam');
@@ -3015,7 +2974,7 @@
         }
         document.getElementById('btn-hangup-call').onclick = hangupCall;
 
-        // Микрофон в звонке (исправлен)
+        // Микрофон в звонке
         function toggleCallMute() {
             if (!callStream) return;
             const audioTrack = callStream.getAudioTracks()[0];
@@ -3039,7 +2998,6 @@
             if (!callStream) return;
             const videoTrack = callStream.getVideoTracks()[0];
             if (!videoTrack) {
-                // Пытаемся добавить камеру
                 navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
                     const newTrack = stream.getVideoTracks()[0];
                     if (newTrack) {
@@ -3047,14 +3005,8 @@
                         document.getElementById('local-video').srcObject = callStream;
                         document.getElementById('btn-cam-call').classList.add('active-cam');
                         isCamOn = true;
-                        // Отправим обновлённый стрим в звонок
                         if (currentCall) {
-                            // PeerJS не поддерживает динамическое добавление треков в существующий звонок,
-                            // но мы можем заменить стрим. Однако проще пересоздать звонок — но это сложно.
-                            // Вместо этого покажем пользователю, что камера добавлена, но для PeerJS
-                            // нужно пересоздавать звонок. Это ограничение библиотеки.
                             alert("Камера добавлена, но для её передачи нужно перезвонить.");
-                            // Удаляем добавленный трек, чтобы не было утечки
                             callStream.removeTrack(newTrack);
                             newTrack.stop();
                             document.getElementById('local-video').srcObject = null;
@@ -3065,7 +3017,6 @@
                 }).catch(() => alert("Камера недоступна"));
                 return;
             }
-            // Включаем/выключаем камеру
             isCamOn = !isCamOn;
             videoTrack.enabled = isCamOn;
             if (isCamOn) {
