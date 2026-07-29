@@ -94,7 +94,6 @@
         .friend-item { position: relative; background: #27272a; border: 1px solid #3f3f46; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
         .friend-item:hover { background: #303036; }
         .friend-item.active { border-color: #4ade80; background: #2e3648; }
-        .friend-item.new-chat { border-color: #60a5fa; background: rgba(96, 165, 250, 0.1); justify-content: center; }
         .friend-avatar-small { width: 40px; height: 40px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: #fff; object-fit: cover; flex-shrink: 0; }
         .friend-item-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
         .friend-item-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
@@ -822,7 +821,7 @@
                     if (data.type === 'CHAT') {
                         playNotify(); saveFriendProfile(data.from, data.profile);
                         saveMessage(data.msgId, data.from, data.from, data.text, data.timestamp, 'sent');
-                        // Сразу отправляем отчет о доставке
+                        // Отправляем отчет о доставке
                         sendData(data.from, { type: 'DELIVERED_ACK', msgIds: [data.msgId] });
                         
                         if (activeChatId === data.from) {
@@ -830,7 +829,6 @@
                         }
                     }
                     else if (data.type === 'DELIVERED_ACK') {
-                        // Меняем 🕐 на ✓
                         const msgs = chatHistory[data.from] || [];
                         data.msgIds.forEach(id => {
                             const m = msgs.find(x => x.id === id);
@@ -840,7 +838,6 @@
                         if (activeChatId === data.from) renderMessages();
                     }
                     else if (data.type === 'READ_RECEIPT') {
-                        // Меняем ✓ на ✓✓
                         const msgs = chatHistory[data.from] || [];
                         msgs.forEach(m => { if (m.from === currentUser.username && (m.status === 'sent' || m.status === 'pending')) m.status = 'read'; });
                         localStorage.setItem('fluger_chats', JSON.stringify(chatHistory));
@@ -886,7 +883,6 @@
             renderFriends();
         }
 
-        // Оффлайн очередь сообщений (каждые 10 сек пытается отправить 🕐)
         setInterval(() => {
             if(!currentUser) return;
             Object.keys(chatHistory).forEach(chatId => {
@@ -917,10 +913,16 @@
             const listEl = document.getElementById('friend-list');
             listEl.innerHTML = '';
             
-            let foundInFriends = false;
+            if (!query) {
+                renderFriends();
+                return;
+            }
+
+            let found = false;
+            
             Object.keys(friends).forEach(username => {
                 if (username.includes(query) || friends[username].displayName.toLowerCase().includes(query)) {
-                    foundInFriends = true;
+                    found = true;
                     const profile = friends[username];
                     const unread = unreadCounts[username] || 0;
                     listEl.innerHTML += `
@@ -932,20 +934,34 @@
                 }
             });
 
-            // Если ввели что-то, предлагаем написать новому юзеру
-            if (query && !friends[query]) {
-                listEl.innerHTML += `
-                    <li class="friend-item new-chat" onclick="startNewChat('${query}')">
-                        <span style="color:#60a5fa; font-weight:600;">Написать @${query}</span>
-                    </li>`;
-            } else if (!foundInFriends && !query) {
-                renderFriends(); 
+            const allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
+            Object.keys(allAccs).forEach(user => {
+                if (user !== currentUser.username && !friends[user] && user.includes(query)) {
+                    found = true;
+                    const p = allAccs[user];
+                    listEl.innerHTML += `
+                        <li class="friend-item" onclick="startNewChat('${user}')">
+                            <div class="friend-avatar-small">${renderAvatarHtml(p.displayName, p.avatar)}</div>
+                            <div class="friend-item-info">
+                                <div class="friend-item-name">${p.displayName}</div>
+                                <div style="font-size: 12px; color: #a1a1aa;">@${user}</div>
+                            </div>
+                        </li>
+                    `;
+                }
+            });
+
+            if (!found) {
+                listEl.innerHTML = `<div style="text-align:center; color:#a1a1aa; padding: 20px; font-size:14px;">Ничего не найдено</div>`;
             }
         }
 
         function startNewChat(username) {
             if(username === currentUser.username) return alert("Это вы!");
-            saveFriendProfile(username, { displayName: username, avatar: '' });
+            const allAccs = JSON.parse(localStorage.getItem('fluger_accounts') || '{}');
+            const p = allAccs[username];
+            if (p) saveFriendProfile(username, { displayName: p.displayName, avatar: p.avatar });
+            else saveFriendProfile(username, { displayName: username, avatar: '' }); 
             document.getElementById('friend-input').value = '';
             openChat(username);
         }
