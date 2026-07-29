@@ -843,6 +843,11 @@
             background: radial-gradient(circle at center, #2a2a2e, #141416);
         }
 
+        /* удалённое аудио (скрыто) */
+        #remote-audio {
+            display: none;
+        }
+
         .call-info {
             text-align: center;
             margin-bottom: 20px;
@@ -1658,6 +1663,10 @@
             border-radius: 12px;
             font-size: 15px;
             transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
         .btn-accept {
             background: #4ade80;
@@ -1786,6 +1795,15 @@
             flex-direction: column;
             gap: 6px;
             margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .member-list::-webkit-scrollbar {
+            width: 3px;
+        }
+        .member-list::-webkit-scrollbar-thumb {
+            background: #3f3f46;
+            border-radius: 4px;
         }
         .member-item {
             display: flex;
@@ -1862,6 +1880,39 @@
         .user-actions .btn-block.blocked:hover {
             background: #4ade80;
             color: #0c0c0e;
+        }
+
+        /* Панель выбора группы/канала */
+        .choose-type-grid {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .choose-type-grid button {
+            flex: 1;
+            padding: 20px 10px;
+            border-radius: 16px;
+            border: 2px solid #3f3f46;
+            background: rgba(39, 39, 42, 0.4);
+            color: #e4e4e7;
+            font-size: 16px;
+            font-weight: 600;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .choose-type-grid button i {
+            font-size: 32px;
+        }
+        .choose-type-grid button:hover {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.08);
+        }
+        .choose-type-grid button:active {
+            transform: scale(0.96);
         }
     </style>
 </head>
@@ -1997,6 +2048,7 @@
                     <video class="local-video" id="local-video" autoplay playsinline muted></video>
                     <div class="call-avatar-fallback" id="call-avatar-fallback">👤</div>
                 </div>
+                <audio id="remote-audio" autoplay></audio>
                 <div class="call-info">
                     <div class="call-peer-name" id="call-peer-name">Собеседник</div>
                     <div class="call-status" id="call-status-text">Подключение...</div>
@@ -2026,6 +2078,28 @@
                 <button class="btn-send" id="btn-send">
                     <i class="fas fa-paper-plane"></i>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === ПАНЕЛЬ ВЫБОРА ТИПА ГРУППЫ === -->
+    <div class="panel-overlay" id="choose-group-overlay">
+        <div class="panel">
+            <div class="panel-header">
+                <h2>Создать</h2>
+                <button class="btn-close" onclick="closeChooseGroup()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="panel-content" style="justify-content:center;">
+                <div class="choose-type-grid">
+                    <button onclick="openCreateGroup('group')">
+                        <i class="fas fa-users"></i> Группа
+                        <span style="font-size:12px;font-weight:400;color:#a1a1aa;">Общий чат</span>
+                    </button>
+                    <button onclick="openCreateGroup('channel')">
+                        <i class="fas fa-bullhorn"></i> Канал
+                        <span style="font-size:12px;font-weight:400;color:#a1a1aa;">Только чтение</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -2128,9 +2202,7 @@
                 <div class="profile-name-large" id="user-profile-name">Имя</div>
                 <div class="profile-user-large" id="user-profile-username">@юз</div>
                 <div style="color:#71717a;font-size:14px;margin-bottom:10px;" id="user-profile-status">статус</div>
-                <div class="user-actions" id="user-actions">
-                    <!-- кнопки блокировки/разблокировки будут добавлены динамически -->
-                </div>
+                <div class="user-actions" id="user-actions"></div>
                 <button class="btn-secondary" onclick="closeUserProfile()" style="margin-top:10px;">Закрыть</button>
             </div>
         </div>
@@ -2289,8 +2361,8 @@
             <h2 id="modal-title">...</h2>
             <p id="modal-desc">...</p>
             <div class="modal-btns">
-                <button class="btn-reject" id="modal-reject">Отклонить</button>
-                <button class="btn-accept" id="modal-accept">Принять</button>
+                <button class="btn-reject" id="modal-reject"><i class="fas fa-times"></i> Отклонить</button>
+                <button class="btn-accept" id="modal-accept"><i class="fas fa-check"></i> Принять</button>
             </div>
         </div>
     </div>
@@ -2299,8 +2371,8 @@
 
     <script>
         // ============================================================
-        //  Fluger v4 – полная версия с группами, конфиденциальностью,
-        //  блокировкой, выходом из групп, иконками и без лишних confirm
+        //  Fluger v5 – исправлены звонки, меню выбора группы/канала,
+        //  улучшен интерфейс группы, надпись "Вызов..."
         // ============================================================
 
         // --- ХРАНИЛИЩЕ ---
@@ -2712,6 +2784,90 @@
             closePrivacySettings();
         }
 
+        // --- ПАНЕЛЬ ВЫБОРА ГРУППЫ/КАНАЛА ---
+        function closeChooseGroup() { document.getElementById('choose-group-overlay').classList.remove('visible'); }
+
+        function openCreateGroup(type) {
+            closeChooseGroup();
+            createGroupType = type;
+            if (type === 'group') {
+                document.getElementById('create-group-title').innerHTML = '<i class="fas fa-users"></i> Создать группу';
+            } else {
+                document.getElementById('create-group-title').innerHTML = '<i class="fas fa-bullhorn"></i> Создать канал';
+            }
+            const container = document.getElementById('group-members-checkboxes');
+            container.innerHTML = '';
+            Object.keys(friends).forEach(username => {
+                const p = friends[username];
+                container.innerHTML += `
+                    <label style="display:flex;align-items:center;gap:8px;padding:4px 0;color:#e4e4e7;cursor:pointer;">
+                        <input type="checkbox" value="${username}" checked> ${p.displayName} (@${username})
+                    </label>
+                `;
+            });
+            document.getElementById('group-name').value = '';
+            document.getElementById('group-desc').value = '';
+            document.getElementById('group-avatar-input').value = '';
+            document.getElementById('create-group-overlay').classList.add('visible');
+        }
+
+        document.getElementById('fab-add').onclick = () => {
+            document.getElementById('choose-group-overlay').classList.add('visible');
+        };
+
+        function closeCreateGroup() { document.getElementById('create-group-overlay').classList.remove('visible'); }
+
+        let createGroupType = 'group';
+
+        function createGroup() {
+            const name = document.getElementById('group-name').value.trim();
+            if (!name) { alert("Введите название"); return; }
+            const description = document.getElementById('group-desc').value.trim();
+            const avatarInput = document.getElementById('group-avatar-input');
+            let avatar = '';
+            if (avatarInput.files && avatarInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    avatar = e.target.result;
+                    finishGroupCreation(name, description, avatar);
+                };
+                reader.readAsDataURL(avatarInput.files[0]);
+            } else {
+                finishGroupCreation(name, description, avatar);
+            }
+        }
+
+        function finishGroupCreation(name, description, avatar) {
+            const members = [];
+            document.querySelectorAll('#group-members-checkboxes input:checked').forEach(cb => {
+                members.push(cb.value);
+            });
+            if (!members.includes(currentUser.username)) members.push(currentUser.username);
+            const groupId = 'g' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+            const group = {
+                id: groupId,
+                name,
+                description,
+                avatar,
+                type: createGroupType,
+                members,
+                createdBy: currentUser.username,
+                createdAt: new Date().toISOString()
+            };
+            groups[groupId] = group;
+            chatHistory[groupId] = [];
+            saveUserToStorage();
+            closeCreateGroup();
+            renderFriends();
+            openChat(groupId);
+            members.forEach(m => {
+                if (m !== currentUser.username) {
+                    sendData(m, { type: 'GROUP_ADDED', group });
+                    sendData(m, { type: 'GROUP_INVITE', groupId, inviter: currentUser.displayName });
+                }
+            });
+        }
+
         // --- ОСНОВНАЯ ЛОГИКА ---
         function initApp() {
             document.getElementById('my-avatar-display').innerHTML = renderAvatarHtml(currentUser.displayName, currentUser
@@ -2773,16 +2929,14 @@
                         return;
                     }
                     if (data.type === 'GROUP_LEAVE') {
-                        // Кто-то вышел из группы
                         const groupId = data.from;
                         if (groups[groupId]) {
                             groups[groupId].members = groups[groupId].members.filter(m => m !== data.leaver);
                             saveUserToStorage();
-                            if (activeChatId === groupId) renderMessages(); // обновим статус
+                            if (activeChatId === groupId) renderMessages();
                         }
                         return;
                     }
-                    // Обычные сообщения
                     if (data.type === 'CHAT') {
                         playNotify();
                         const isGroup = !!groups[data.from];
@@ -2877,7 +3031,7 @@
                         call.answer(callStream);
                         openChat(call.peer);
                         const profile = friends[call.peer] || { displayName: call.peer, avatar: "" };
-                        showCallUI(profile.displayName, "Соединение...", callStream.getVideoTracks().length > 0);
+                        showCallUI(profile.displayName, "Вызов...", callStream.getVideoTracks().length > 0);
                         if (callStream.getVideoTracks().length > 0) {
                             document.getElementById('local-video').srcObject = callStream;
                             document.getElementById('btn-cam-call').classList.add('active-cam');
@@ -3066,7 +3220,6 @@
             e.stopPropagation();
             contextMenuTargetUser = username;
             const menu = document.getElementById('chat-context-menu');
-            // Показываем/скрываем пункт "Выйти из группы"
             const leaveBtn = document.getElementById('ctx-leave-group');
             if (groups[username] && groups[username].members.includes(currentUser.username)) {
                 leaveBtn.style.display = 'flex';
@@ -3089,7 +3242,7 @@
                     '.btn-chat-opts')) closeChatContextMenu();
         });
 
-        // --- ДЕЙСТВИЯ КОНТЕКСТНОГО МЕНЮ (без подтверждений) ---
+        // --- ДЕЙСТВИЯ ---
         function actionClearChat() {
             if (!contextMenuTargetUser) return;
             chatHistory[contextMenuTargetUser] = [];
@@ -3100,10 +3253,8 @@
 
         function actionDeleteChat() {
             if (!contextMenuTargetUser) return;
-            // Если группа, просто удаляем из чатов, но остаёмся участником
             if (groups[contextMenuTargetUser]) {
                 delete chatHistory[contextMenuTargetUser];
-                // Не удаляем группу из groups
             } else {
                 delete friends[contextMenuTargetUser];
             }
@@ -3119,24 +3270,19 @@
             const group = groups[contextMenuTargetUser];
             if (!group) return;
             if (!group.members.includes(currentUser.username)) return;
-            // Удаляем себя из участников
             group.members = group.members.filter(m => m !== currentUser.username);
-            // Если создатель вышел, передаём создание первому оставшемуся
             if (group.createdBy === currentUser.username && group.members.length > 0) {
                 group.createdBy = group.members[0];
             }
-            // Если участников не осталось, удаляем группу
             if (group.members.length === 0) {
                 delete groups[contextMenuTargetUser];
             } else {
                 groups[contextMenuTargetUser] = group;
-                // Оповещаем остальных участников
                 group.members.forEach(m => {
                     sendData(m, { type: 'GROUP_LEAVE', from: contextMenuTargetUser, leaver: currentUser
                             .username });
                 });
             }
-            // Удаляем историю чата для себя
             delete chatHistory[contextMenuTargetUser];
             saveUserToStorage();
             if (activeChatId === contextMenuTargetUser) closeChatMobile();
@@ -3293,7 +3439,6 @@
                 } else statusEl.innerText = 'был(а) давно';
                 statusEl.style.color = '#71717a';
             }
-            // Кнопки блокировки
             const actionsDiv = document.getElementById('user-actions');
             const isBlocked = blockedUsers.includes(username);
             actionsDiv.innerHTML = `
@@ -3309,7 +3454,6 @@
                 blockedUsers.push(username);
                 localStorage.setItem('fluger_blocked', JSON.stringify(blockedUsers));
             }
-            // Если чат открыт, закрываем
             if (activeChatId === username) closeChatMobile();
             delete friends[username];
             delete chatHistory[username];
@@ -3328,7 +3472,7 @@
 
         function closeUserProfile() { document.getElementById('user-profile-overlay').classList.remove('visible'); }
 
-        // --- ИНФОРМАЦИЯ О ГРУППЕ ---
+        // --- ИНФОРМАЦИЯ О ГРУППЕ (улучшена для телефонов) ---
         function showGroupInfo(groupId) {
             const group = groups[groupId];
             if (!group) return;
@@ -3340,21 +3484,50 @@
                     <div class="panel-header"><h2>${group.name}</h2><button class="btn-close" onclick="this.closest('.panel-overlay').remove()"><i class="fas fa-times"></i></button></div>
                     <div class="panel-content" style="align-items:stretch;">
                         <div class="profile-avatar-large" style="align-self:center;">${renderAvatarHtml(group.name, group.avatar)}</div>
-                        <div style="text-align:center;font-size:14px;color:#a1a1aa;">${group.description || 'Без описания'}</div>
-                        <div style="margin-top:12px;font-weight:600;color:#e4e4e7;">Участники (${group.members.length})</div>
+                        <div style="text-align:center;font-size:14px;color:#a1a1aa;margin-bottom:6px;">${group.description || 'Без описания'}</div>
+                        <div style="font-size:12px;color:#71717a;text-align:center;margin-bottom:10px;">${group.type === 'group' ? 'Группа' : 'Канал'} • Создатель: ${friends[group.createdBy]?.displayName || group.createdBy}</div>
+                        <div style="margin-top:6px;font-weight:600;color:#e4e4e7;">Участники (${group.members.length})</div>
                         <div class="member-list">
                             ${group.members.map(m => {
                                 const p = friends[m] || { displayName: m, avatar: '' };
                                 return `<div class="member-item"><div class="friend-avatar-small">${renderAvatarHtml(p.displayName, p.avatar)}</div><div class="member-name">${p.displayName}</div><div class="member-username">@${m}</div></div>`;
                             }).join('')}
                         </div>
-                        ${group.createdBy === currentUser.username ? `<button class="btn-primary" style="margin-top:12px;" onclick="openInvitePanel('${groupId}')"><i class="fas fa-user-plus"></i> Пригласить</button>` : ''}
-                        <button class="btn-secondary" style="margin-top:6px;" onclick="this.closest('.panel-overlay').remove()">Закрыть</button>
+                        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                            ${group.createdBy === currentUser.username ? `<button class="invite-btn" onclick="openInvitePanel('${groupId}')"><i class="fas fa-user-plus"></i> Пригласить</button>` : ''}
+                            <button class="btn-secondary" style="flex:1;padding:10px;" onclick="this.closest('.panel-overlay').remove()">Закрыть</button>
+                        </div>
+                        <button class="btn-logout" style="margin-top:6px;background:rgba(239,68,68,0.1);color:#ef4444;" onclick="leaveGroupFromInfo('${groupId}')"><i class="fas fa-sign-out-alt"></i> Выйти из группы</button>
                     </div>
                 </div>
             `;
             document.body.appendChild(panel);
             panel.addEventListener('click', (e) => { if (e.target === panel) panel.remove(); });
+        }
+
+        function leaveGroupFromInfo(groupId) {
+            const group = groups[groupId];
+            if (!group) return;
+            if (!group.members.includes(currentUser.username)) return;
+            group.members = group.members.filter(m => m !== currentUser.username);
+            if (group.createdBy === currentUser.username && group.members.length > 0) {
+                group.createdBy = group.members[0];
+            }
+            if (group.members.length === 0) {
+                delete groups[groupId];
+            } else {
+                groups[groupId] = group;
+                group.members.forEach(m => {
+                    sendData(m, { type: 'GROUP_LEAVE', from: groupId, leaver: currentUser.username });
+                });
+            }
+            delete chatHistory[groupId];
+            saveUserToStorage();
+            // закрыть панель информации
+            const infoPanel = document.getElementById('group-info-panel');
+            if (infoPanel) infoPanel.remove();
+            if (activeChatId === groupId) closeChatMobile();
+            renderFriends();
         }
 
         // --- ПРИГЛАШЕНИЕ В ГРУППУ ---
@@ -3390,84 +3563,6 @@
             sendData(username, { type: 'GROUP_INVITE', groupId, inviter: currentUser.displayName });
             alert(`Приглашение отправлено ${username}`);
             closeInvitePanel();
-        }
-
-        // --- СОЗДАНИЕ ГРУППЫ ---
-        let createGroupType = 'group';
-
-        document.getElementById('fab-add').onclick = () => {
-            if (confirm("Создать группу? (OK - группа, Отмена - канал)")) {
-                createGroupType = 'group';
-                document.getElementById('create-group-title').innerHTML = '<i class="fas fa-users"></i> Создать группу';
-            } else {
-                createGroupType = 'channel';
-                document.getElementById('create-group-title').innerHTML = '<i class="fas fa-bullhorn"></i> Создать канал';
-            }
-            const container = document.getElementById('group-members-checkboxes');
-            container.innerHTML = '';
-            Object.keys(friends).forEach(username => {
-                const p = friends[username];
-                container.innerHTML += `
-                    <label style="display:flex;align-items:center;gap:8px;padding:4px 0;color:#e4e4e7;cursor:pointer;">
-                        <input type="checkbox" value="${username}" checked> ${p.displayName} (@${username})
-                    </label>
-                `;
-            });
-            document.getElementById('group-name').value = '';
-            document.getElementById('group-desc').value = '';
-            document.getElementById('group-avatar-input').value = '';
-            document.getElementById('create-group-overlay').classList.add('visible');
-        };
-
-        function closeCreateGroup() { document.getElementById('create-group-overlay').classList.remove('visible'); }
-
-        function createGroup() {
-            const name = document.getElementById('group-name').value.trim();
-            if (!name) { alert("Введите название"); return; }
-            const description = document.getElementById('group-desc').value.trim();
-            const avatarInput = document.getElementById('group-avatar-input');
-            let avatar = '';
-            if (avatarInput.files && avatarInput.files[0]) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    avatar = e.target.result;
-                    finishGroupCreation(name, description, avatar);
-                };
-                reader.readAsDataURL(avatarInput.files[0]);
-            } else {
-                finishGroupCreation(name, description, avatar);
-            }
-        }
-
-        function finishGroupCreation(name, description, avatar) {
-            const members = [];
-            document.querySelectorAll('#group-members-checkboxes input:checked').forEach(cb => {
-                members.push(cb.value);
-            });
-            if (!members.includes(currentUser.username)) members.push(currentUser.username);
-            const groupId = 'g' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
-            const group = {
-                id: groupId,
-                name,
-                description,
-                avatar,
-                type: createGroupType,
-                members,
-                createdBy: currentUser.username,
-                createdAt: new Date().toISOString()
-            };
-            groups[groupId] = group;
-            chatHistory[groupId] = [];
-            saveUserToStorage();
-            closeCreateGroup();
-            renderFriends();
-            openChat(groupId);
-            members.forEach(m => {
-                if (m !== currentUser.username) {
-                    sendData(m, { type: 'GROUP_ADDED', group });
-                    sendData(m, { type: 'GROUP_INVITE', groupId, inviter: currentUser.displayName });
-                }
-            });
         }
 
         // --- СООБЩЕНИЯ ---
@@ -3735,7 +3830,7 @@
         }
 
         // ============================================================
-        //  ЗВОНКИ
+        //  ЗВОНКИ (исправлены: добавлен аудио-элемент, обработка стримов)
         // ============================================================
         let callStream = null;
 
@@ -3766,6 +3861,7 @@
             const overlay = document.getElementById('call-overlay');
             overlay.classList.remove('active');
             document.getElementById('remote-video').srcObject = null;
+            document.getElementById('remote-audio').srcObject = null;
             document.getElementById('remote-video').style.display = 'block';
             document.getElementById('call-avatar-fallback').style.display = 'flex';
             if (currentCall) { currentCall.close();
@@ -3788,12 +3884,23 @@
             call.on('stream', stream => {
                 stopOutgoingCallTone();
                 stopIncomingRingtone();
+                // Устанавливаем стрим как для видео, так и для аудио (чтобы слышать)
+                const remoteVideo = document.getElementById('remote-video');
+                const remoteAudio = document.getElementById('remote-audio');
+                if (remoteVideo) {
+                    remoteVideo.srcObject = stream;
+                    remoteVideo.play().catch(e => console.log(e));
+                }
+                if (remoteAudio) {
+                    remoteAudio.srcObject = stream;
+                    remoteAudio.play().catch(e => console.log(e));
+                }
+                // Показываем видео, если есть видео-трек
                 if (stream.getVideoTracks().length > 0) {
-                    document.getElementById('remote-video').srcObject = stream;
-                    document.getElementById('remote-video').style.display = 'block';
+                    remoteVideo.style.display = 'block';
                     document.getElementById('call-avatar-fallback').style.display = 'none';
                 } else {
-                    document.getElementById('remote-video').style.display = 'none';
+                    remoteVideo.style.display = 'none';
                     document.getElementById('call-avatar-fallback').style.display = 'flex';
                 }
                 document.getElementById('call-status-text').innerText = "В разговоре";
@@ -3818,7 +3925,7 @@
             } catch (e) { alert("Не удалось получить доступ к микрофону"); return; }
 
             const profile = friends[activeChatId] || { displayName: activeChatId, avatar: '' };
-            showCallUI(profile.displayName, "Идут гудки...", false);
+            showCallUI(profile.displayName, "Вызов...", false);
             startOutgoingCallTone();
 
             document.getElementById('local-video').srcObject = null;
