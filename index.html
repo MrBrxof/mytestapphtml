@@ -94,6 +94,7 @@
         .friend-item { position: relative; background: #27272a; border: 1px solid #3f3f46; padding: 12px 14px; border-radius: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
         .friend-item:hover { background: #303036; }
         .friend-item.active { border-color: #4ade80; background: #2e3648; }
+        .friend-item.new-chat { border-color: #60a5fa; background: rgba(96, 165, 250, 0.1); justify-content: center; }
         .friend-avatar-small { width: 40px; height: 40px; border-radius: 50%; background: #3f3f46; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; color: #fff; object-fit: cover; flex-shrink: 0; }
         .friend-item-info { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
         .friend-item-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
@@ -248,7 +249,7 @@
 
         /* Модалка звонка (Маленькая) */
         .alert-modal { background: #27272a; border: 1px solid #3f3f46; padding: 24px; border-radius: 20px; text-align: center; width: 90%; max-width: 320px; transform: scale(0.9); transition: 0.3s; }
-        .overlay.visible .alert-modal { transform: scale(1); }
+        .panel-overlay.visible .alert-modal { transform: scale(1); }
         .alert-modal h2 { margin: 0 0 8px 0; font-size: 18px; color: #fff; }
         .alert-modal p { color: #a1a1aa; margin-bottom: 20px; font-size: 14px; }
         .modal-btns { display: flex; gap: 10px; }
@@ -598,6 +599,9 @@
     <audio id="incoming-ringtone" src="souncall.mp3" loop preload="auto"></audio>
 
     <script>
+        // === КЭШ СОЕДИНЕНИЙ ДЛЯ СТАБИЛЬНОСТИ ===
+        const activeConnections = {};
+
         // === БАЗА И УСТРОЙСТВА ===
         let currentUser = JSON.parse(localStorage.getItem('fluger_user'));
         let selectedAvatar = null;
@@ -774,15 +778,20 @@
         }
 
         function closeDeviceAuthPanel() { document.getElementById('device-auth-overlay').classList.remove('visible'); if(authPeer) { authPeer.destroy(); authPeer = null;} stopQRScanner(); }
+        
+        // Исправленный запуск сканера с задержкой, чтобы модалка успела открыться
         function startQRScanner() {
-            document.getElementById('auth-scanner-ui').style.display = 'none'; document.getElementById('qr-reader-container').style.display = 'block';
+            document.getElementById('auth-scanner-ui').style.display = 'none'; 
+            document.getElementById('qr-reader-container').style.display = 'block';
+            
             setTimeout(() => {
                 html5QrCode = new Html5Qrcode("qr-reader");
                 html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, 
                     (decodedText) => { stopQRScanner(); document.getElementById('device-auth-input').value = decodedText; connectDeviceAuth(decodedText); }, (err) => {}
-                ).catch(err => { alert("Камера недоступна"); stopQRScanner(); });
-            }, 100);
+                ).catch(err => { alert("Камера недоступна или заблокирована"); stopQRScanner(); });
+            }, 300);
         }
+        
         function stopQRScanner() {
             if(html5QrCode) { html5QrCode.stop().then(() => { html5QrCode.clear(); html5QrCode = null; }).catch(e=>{}); }
             document.getElementById('qr-reader-container').style.display = 'none'; document.getElementById('auth-scanner-ui').style.display = 'block';
@@ -811,6 +820,7 @@
                 setConnStatus('connected');
                 navigator.mediaDevices.getUserMedia({ video: false, audio: true }).then(stream => localStream = stream).catch(err => console.error("Микрофон недоступен", err));
             });
+            
             peer.on('disconnected', () => { 
                 setConnStatus('error'); 
                 setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 5000); 
@@ -819,16 +829,21 @@
             peer.on('connection', conn => {
                 conn.on('data', data => {
                     if (data.type === 'CHAT') {
-                        playNotify(); saveFriendProfile(data.from, data.profile);
+                        playNotify(); 
+                        saveFriendProfile(data.from, data.profile);
                         saveMessage(data.msgId, data.from, data.from, data.text, data.timestamp, 'sent');
-                        // Отправляем отчет о доставке
-                        sendData(data.from, { type: 'DELIVERED_ACK', msgIds: [data.msgId] });
+                        
+                        // Сразу отправляем ответ о доставке с нашим профилем!
+                        sendData(data.from, { type: 'DELIVERED_ACK', msgIds: [data.msgId], profile: getMyProfile() });
                         
                         if (activeChatId === data.from) {
                             sendData(data.from, { type: 'READ_RECEIPT', from: currentUser.username });
                         }
                     }
                     else if (data.type === 'DELIVERED_ACK') {
+                        // Если нам прислали профиль (подтянулась аватарка)
+                        if (data.profile) saveFriendProfile(data.from, data.profile);
+                        
                         const msgs = chatHistory[data.from] || [];
                         data.msgIds.forEach(id => {
                             const m = msgs.find(x => x.id === id);
@@ -883,28 +898,50 @@
             renderFriends();
         }
 
+        // Оффлайн очередь (Каждые 5 сек пытаемся отправить зависшие сообщения)
         setInterval(() => {
-            if(!currentUser) return;
+            if(!currentUser || !peer || peer.disconnected) return;
             Object.keys(chatHistory).forEach(chatId => {
                 const pendingMsgs = chatHistory[chatId].filter(m => m.status === 'pending' && m.from === currentUser.username);
-                if (pendingMsgs.length > 0 && peer && !peer.disconnected) {
-                    const conn = peer.connect(chatId, { reliable: true });
-                    conn.on('open', () => {
-                        pendingMsgs.forEach(msg => {
-                            conn.send({ type: 'CHAT', msgId: msg.id, text: msg.text, from: currentUser.username, profile: getMyProfile(), timestamp: msg.timestamp });
-                        });
-                        setTimeout(() => conn.close(), 1000);
+                if (pendingMsgs.length > 0) {
+                    pendingMsgs.forEach(msg => {
+                        sendData(chatId, { type: 'CHAT', msgId: msg.id, text: msg.text, from: currentUser.username, profile: getMyProfile(), timestamp: msg.timestamp });
                     });
                 }
             });
-        }, 10000);
+        }, 5000);
 
         function getMyProfile() { return { displayName: currentUser.displayName, avatar: currentUser.avatar }; }
-        function saveFriendProfile(username, profileObj) { if (!friends[username]) friends[username] = {}; friends[username] = profileObj; localStorage.setItem('fluger_friends', JSON.stringify(friends)); renderFriends(); }
+        
+        function saveFriendProfile(username, profileObj) { 
+            if (!friends[username]) friends[username] = {}; 
+            friends[username] = profileObj; 
+            localStorage.setItem('fluger_friends', JSON.stringify(friends)); 
+            renderFriends(); 
+            
+            // Если профиль обновился в открытом чате — обновляем шапку
+            if(activeChatId === username) {
+                document.getElementById('chat-title-name').innerText = profileObj.displayName;
+                document.getElementById('chat-avatar-top').innerHTML = renderAvatarHtml(profileObj.displayName, profileObj.avatar);
+                document.getElementById('call-avatar').innerHTML = renderAvatarHtml(profileObj.displayName, profileObj.avatar);
+            }
+        }
+        
         function sendData(targetUser, dataObj) {
             if (peer.disconnected && !peer.destroyed) peer.reconnect();
+            
+            if (activeConnections[targetUser] && activeConnections[targetUser].open) {
+                activeConnections[targetUser].send(dataObj);
+                return;
+            }
+            
             const conn = peer.connect(targetUser, { reliable: true });
-            conn.on('open', () => { conn.send(dataObj); setTimeout(() => conn.close(), 500); });
+            conn.on('open', () => { 
+                activeConnections[targetUser] = conn;
+                conn.send(dataObj); 
+            });
+            conn.on('error', () => { delete activeConnections[targetUser]; });
+            conn.on('close', () => { delete activeConnections[targetUser]; });
         }
 
         // ПОИСК И ЧАТЫ
